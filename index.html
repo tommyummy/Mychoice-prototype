@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>오늘의선택 - 프로토타입</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 24px; max-width: 680px; }
+    .card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; margin: 12px 0; }
+    button { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #ccc; background: #fff; margin: 8px 0; font-size: 16px; }
+    button:active { transform: scale(0.99); }
+    .row { display:flex; gap:10px; }
+    .row button { width:auto; flex:1; }
+    small { color:#666; }
+    .muted { color:#666; }
+    .danger { border-color:#f2b8b5; background:#fff5f5; }
+  </style>
+</head>
+<body>
+  <h1>오늘의선택 (프로토타입)</h1>
+  <p class="muted">서버/DB 없이 테스트용. 선택 기록은 이 브라우저에만 저장됩니다.</p>
+
+  <div class="card" id="todayCard"></div>
+
+  <div class="card">
+    <div class="row">
+      <button id="btnShowLog">내 기록 보기</button>
+      <button id="btnReset" class="danger">기록 초기화</button>
+    </div>
+    <small>※ “내 기록”은 기기/브라우저를 바꾸면 공유되지 않습니다.</small>
+  </div>
+
+  <div class="card" id="logCard" style="display:none;"></div>
+
+<script>
+  // 1) 질문/선택지: 지금은 하드코딩 (나중에 DB로 바꾸기 쉬움)
+  const PROMPTS = [
+    {
+      id: "p1",
+      q: "오늘, 일이 밀렸을 때 당신은?",
+      options: [
+        { key: "A", text: "우선순위부터 정하고 하나씩 처리한다" },
+        { key: "B", text: "급한 것부터 일단 쳐낸다" },
+        { key: "C", text: "누구 도움 받을 수 있나부터 본다" },
+        { key: "D", text: "완벽하게 할 시간 없으면 최소만 한다" },
+      ],
+    },
+    {
+      id: "p2",
+      q: "갈등 상황에서 더 자주 하는 행동은?",
+      options: [
+        { key: "A", text: "팩트부터 정리하고 해결책을 제시한다" },
+        { key: "B", text: "감정이 가라앉을 때까지 잠깐 거리를 둔다" },
+        { key: "C", text: "상대 입장을 먼저 물어본다" },
+        { key: "D", text: "중재자/규칙을 찾아 분쟁을 줄인다" },
+      ],
+    },
+    {
+      id: "p3",
+      q: "새로운 일을 시작할 때 당신은?",
+      options: [
+        { key: "A", text: "계획을 세운 뒤 시작한다" },
+        { key: "B", text: "일단 해보면서 맞춘다" },
+        { key: "C", text: "레퍼런스를 많이 모은다" },
+        { key: "D", text: "작게 시험해보고 확장한다" },
+      ],
+    },
+  ];
+
+  const LS_KEY = "mychoice_logs_v1";
+
+  function loadLogs() {
+    try { return JSON.parse(localStorage.getItem(LS_KEY) || "[]"); }
+    catch { return []; }
+  }
+  function saveLogs(logs) {
+    localStorage.setItem(LS_KEY, JSON.stringify(logs));
+  }
+
+  // 2) 오늘 질문: 날짜 기반으로 하나 선택(매일 바뀌는 느낌)
+  function pickTodayPrompt() {
+    const d = new Date();
+    const seed = Number(`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`);
+    const idx = seed % PROMPTS.length;
+    return PROMPTS[idx];
+  }
+
+  function renderToday() {
+    const p = pickTodayPrompt();
+    const el = document.getElementById("todayCard");
+    el.innerHTML = `
+      <h2>오늘의 질문</h2>
+      <p style="font-size:18px; font-weight:600;">${p.q}</p>
+      ${p.options.map(o => `<button data-pid="${p.id}" data-key="${o.key}">${o.key}. ${o.text}</button>`).join("")}
+      <small class="muted">질문은 날짜에 따라 자동으로 선택됩니다.</small>
+    `;
+
+    el.querySelectorAll("button[data-pid]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const logs = loadLogs();
+        const pid = btn.getAttribute("data-pid");
+        const key = btn.getAttribute("data-key");
+        const choiceText = p.options.find(x => x.key === key)?.text || "";
+        logs.unshift({
+          ts: new Date().toISOString(),
+          promptId: pid,
+          question: p.q,
+          choiceKey: key,
+          choiceText,
+        });
+        saveLogs(logs);
+        alert("저장 완료!");
+      });
+    });
+  }
+
+  function renderLog() {
+    const logs = loadLogs();
+    const logCard = document.getElementById("logCard");
+    logCard.style.display = "block";
+
+    if (logs.length === 0) {
+      logCard.innerHTML = `<h2>내 기록</h2><p class="muted">아직 기록이 없습니다.</p>`;
+      return;
+    }
+
+    const items = logs.slice(0, 50).map(l => {
+      const t = new Date(l.ts);
+      const kst = new Intl.DateTimeFormat("ko-KR", { dateStyle: "medium", timeStyle: "short" }).format(t);
+      return `
+        <div style="padding:10px 0; border-top:1px solid #eee;">
+          <div><b>${kst}</b></div>
+          <div class="muted">${l.question}</div>
+          <div>선택: <b>${l.choiceKey}</b> — ${l.choiceText}</div>
+        </div>
+      `;
+    }).join("");
+
+    logCard.innerHTML = `<h2>내 기록</h2>${items}`;
+  }
+
+  document.getElementById("btnShowLog").addEventListener("click", renderLog);
+  document.getElementById("btnReset").addEventListener("click", () => {
+    if (confirm("이 브라우저에 저장된 기록을 모두 삭제합니다. 계속할까요?")) {
+      localStorage.removeItem(LS_KEY);
+      document.getElementById("logCard").style.display = "none";
+      alert("초기화 완료");
+    }
+  });
+
+  renderToday();
+</script>
+</body>
+</html>
