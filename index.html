@@ -1,154 +1,245 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>오늘의선택 - 프로토타입</title>
-  <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 24px; max-width: 680px; }
-    .card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; margin: 12px 0; }
-    button { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #ccc; background: #fff; margin: 8px 0; font-size: 16px; }
-    button:active { transform: scale(0.99); }
-    .row { display:flex; gap:10px; }
-    .row button { width:auto; flex:1; }
-    small { color:#666; }
-    .muted { color:#666; }
-    .danger { border-color:#f2b8b5; background:#fff5f5; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>오늘의선택 · 록스타 RPG</title>
+
+<style>
+/* ===== 기본 ===== */
+body {
+  margin:0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background:#0b0f1a;
+  color:#f0f2ff;
+}
+.wrap {
+  max-width:860px;
+  margin:0 auto;
+  padding:16px;
+}
+h1 { font-size:20px; margin:0 0 12px 0; }
+
+/* ===== 무대 ===== */
+.stage {
+  border-radius:18px;
+  background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  border:1px solid rgba(255,255,255,0.12);
+  overflow:hidden;
+}
+
+/* ===== 캐릭터 영역 ===== */
+.characters {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  padding:16px;
+}
+.char {
+  display:flex;
+  gap:12px;
+  align-items:center;
+  background:rgba(0,0,0,0.25);
+  border-radius:14px;
+  padding:12px;
+  border:1px solid rgba(255,255,255,0.1);
+}
+
+/* ===== 아바타 ===== */
+.avatar {
+  width:90px;
+  height:90px;
+  border-radius:16px;
+  background:rgba(255,255,255,0.06);
+  display:grid;
+  place-items:center;
+  transform-origin:50% 80%;
+  will-change:transform;
+}
+
+/* ===== 움직임 애니메이션 ===== */
+@keyframes idleBreath {
+  0%,100% { transform:translateY(0) scale(1); }
+  50% { transform:translateY(-2px) scale(1.01); }
+}
+@keyframes talkNod {
+  0%,100% { transform:translateY(-1px) rotate(0deg); }
+  25% { transform:translateY(-3px) rotate(-1deg); }
+  75% { transform:translateY(-3px) rotate(1deg); }
+}
+@keyframes reactPop {
+  0% { transform:scale(1); }
+  40% { transform:scale(1.06); }
+  100% { transform:scale(1.01); }
+}
+
+.avatar.is-idle { animation: idleBreath 2.8s ease-in-out infinite; }
+.avatar.is-talk { animation: talkNod 0.6s ease-in-out infinite; }
+.avatar.is-react { animation: reactPop 0.35s ease-out; }
+
+/* ===== 텍스트 ===== */
+.name { font-weight:800; }
+.role { font-size:12px; opacity:0.7; margin-top:4px; }
+
+/* ===== 대화 ===== */
+.dialogue {
+  padding:16px;
+  border-top:1px solid rgba(255,255,255,0.12);
+  background:rgba(0,0,0,0.35);
+}
+.question {
+  font-size:18px;
+  font-weight:800;
+  margin-bottom:14px;
+}
+.choices { display:grid; gap:10px; }
+button.choice {
+  padding:12px 14px;
+  font-size:15px;
+  border-radius:12px;
+  background:rgba(255,255,255,0.06);
+  color:#f0f2ff;
+  border:1px solid rgba(255,255,255,0.15);
+  text-align:left;
+}
+button.choice:active { transform:translateY(1px); }
+
+/* ===== 로그 ===== */
+.log {
+  margin-top:14px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,0.12);
+  overflow:hidden;
+}
+.log h2 {
+  margin:0;
+  padding:12px 16px;
+  font-size:14px;
+  background:rgba(0,0,0,0.4);
+}
+.logbody {
+  padding:12px 16px;
+  background:rgba(255,255,255,0.04);
+}
+.logitem {
+  padding:8px 0;
+  border-top:1px solid rgba(255,255,255,0.08);
+  font-size:13px;
+}
+</style>
 </head>
+
 <body>
-  <h1>오늘의선택 (프로토타입)</h1>
-  <p class="muted">서버/DB 없이 테스트용. 선택 기록은 이 브라우저에만 저장됩니다.</p>
+<div class="wrap">
+  <h1>🎸 오늘의선택 · 록스타 RPG</h1>
 
-  <div class="card" id="todayCard"></div>
+  <div class="stage">
 
-  <div class="card">
-    <div class="row">
-      <button id="btnShowLog">내 기록 보기</button>
-      <button id="btnReset" class="danger">기록 초기화</button>
+    <!-- 캐릭터 -->
+    <div class="characters">
+      <div class="char">
+        <div class="avatar is-idle" id="playerAvatar">
+          🎸
+        </div>
+        <div>
+          <div class="name">플레이어</div>
+          <div class="role">록스타 · 선택하는 자</div>
+        </div>
+      </div>
+
+      <div class="char">
+        <div class="avatar is-idle" id="npcAvatar">
+          ❓
+        </div>
+        <div>
+          <div class="name">질문자</div>
+          <div class="role">너를 시험하는 존재</div>
+        </div>
+      </div>
     </div>
-    <small>※ “내 기록”은 기기/브라우저를 바꾸면 공유되지 않습니다.</small>
+
+    <!-- 대화 -->
+    <div class="dialogue">
+      <div class="question" id="questionText"></div>
+      <div class="choices" id="choices"></div>
+    </div>
+
   </div>
 
-  <div class="card" id="logCard" style="display:none;"></div>
+  <div class="log">
+    <h2>내 기록</h2>
+    <div class="logbody" id="logBody"></div>
+  </div>
+</div>
 
 <script>
-  // 1) 질문/선택지: 지금은 하드코딩 (나중에 DB로 바꾸기 쉬움)
-  const PROMPTS = [
-    {
-      id: "p1",
-      q: "오늘, 일이 밀렸을 때 당신은?",
-      options: [
-        { key: "A", text: "우선순위부터 정하고 하나씩 처리한다" },
-        { key: "B", text: "급한 것부터 일단 쳐낸다" },
-        { key: "C", text: "누구 도움 받을 수 있나부터 본다" },
-        { key: "D", text: "완벽하게 할 시간 없으면 최소만 한다" },
-      ],
-    },
-    {
-      id: "p2",
-      q: "갈등 상황에서 더 자주 하는 행동은?",
-      options: [
-        { key: "A", text: "팩트부터 정리하고 해결책을 제시한다" },
-        { key: "B", text: "감정이 가라앉을 때까지 잠깐 거리를 둔다" },
-        { key: "C", text: "상대 입장을 먼저 물어본다" },
-        { key: "D", text: "중재자/규칙을 찾아 분쟁을 줄인다" },
-      ],
-    },
-    {
-      id: "p3",
-      q: "새로운 일을 시작할 때 당신은?",
-      options: [
-        { key: "A", text: "계획을 세운 뒤 시작한다" },
-        { key: "B", text: "일단 해보면서 맞춘다" },
-        { key: "C", text: "레퍼런스를 많이 모은다" },
-        { key: "D", text: "작게 시험해보고 확장한다" },
-      ],
-    },
-  ];
-
-  const LS_KEY = "mychoice_logs_v1";
-
-  function loadLogs() {
-    try { return JSON.parse(localStorage.getItem(LS_KEY) || "[]"); }
-    catch { return []; }
+/* ===== 데이터 ===== */
+const PROMPTS = [
+  {
+    q:"오늘, 무대에 오르기 전 너의 선택은?",
+    options:["끝까지 리허설한다","즉흥을 믿는다","동료와 합을 맞춘다","혼자 집중한다"]
+  },
+  {
+    q:"갈등이 생겼다. 넌?",
+    options:["정면 돌파","한발 물러남","대화로 푼다","무시한다"]
+  },
+  {
+    q:"새로운 곡을 만든다면?",
+    options:["계획부터","감정부터","레퍼런스 조사","즉흥 연주"]
   }
-  function saveLogs(logs) {
-    localStorage.setItem(LS_KEY, JSON.stringify(logs));
-  }
+];
 
-  // 2) 오늘 질문: 날짜 기반으로 하나 선택(매일 바뀌는 느낌)
-  function pickTodayPrompt() {
-    const d = new Date();
-    const seed = Number(`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`);
-    const idx = seed % PROMPTS.length;
-    return PROMPTS[idx];
-  }
+const LS_KEY = "rockstar_choice_log";
 
-  function renderToday() {
-    const p = pickTodayPrompt();
-    const el = document.getElementById("todayCard");
-    el.innerHTML = `
-      <h2>오늘의 질문</h2>
-      <p style="font-size:18px; font-weight:600;">${p.q}</p>
-      ${p.options.map(o => `<button data-pid="${p.id}" data-key="${o.key}">${o.key}. ${o.text}</button>`).join("")}
-      <small class="muted">질문은 날짜에 따라 자동으로 선택됩니다.</small>
-    `;
+/* ===== 상태 ===== */
+const player = document.getElementById("playerAvatar");
+const npc = document.getElementById("npcAvatar");
+const qEl = document.getElementById("questionText");
+const cEl = document.getElementById("choices");
+const logEl = document.getElementById("logBody");
 
-    el.querySelectorAll("button[data-pid]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const logs = loadLogs();
-        const pid = btn.getAttribute("data-pid");
-        const key = btn.getAttribute("data-key");
-        const choiceText = p.options.find(x => x.key === key)?.text || "";
-        logs.unshift({
-          ts: new Date().toISOString(),
-          promptId: pid,
-          question: p.q,
-          choiceKey: key,
-          choiceText,
-        });
-        saveLogs(logs);
-        alert("저장 완료!");
-      });
-    });
-  }
+/* ===== 유틸 ===== */
+function setState(el, state){
+  el.classList.remove("is-idle","is-talk","is-react");
+  el.classList.add(state);
+}
 
-  function renderLog() {
-    const logs = loadLogs();
-    const logCard = document.getElementById("logCard");
-    logCard.style.display = "block";
+/* ===== 질문 표시 ===== */
+const today = PROMPTS[new Date().getDate() % PROMPTS.length];
+qEl.textContent = today.q;
 
-    if (logs.length === 0) {
-      logCard.innerHTML = `<h2>내 기록</h2><p class="muted">아직 기록이 없습니다.</p>`;
-      return;
-    }
+setState(npc,"is-talk");
 
-    const items = logs.slice(0, 50).map(l => {
-      const t = new Date(l.ts);
-      const kst = new Intl.DateTimeFormat("ko-KR", { dateStyle: "medium", timeStyle: "short" }).format(t);
-      return `
-        <div style="padding:10px 0; border-top:1px solid #eee;">
-          <div><b>${kst}</b></div>
-          <div class="muted">${l.question}</div>
-          <div>선택: <b>${l.choiceKey}</b> — ${l.choiceText}</div>
-        </div>
-      `;
-    }).join("");
+today.options.forEach(opt=>{
+  const b=document.createElement("button");
+  b.className="choice";
+  b.textContent=opt;
+  b.onclick=()=>{
+    setState(player,"is-react");
+    setTimeout(()=>setState(player,"is-idle"),400);
+    saveLog(today.q,opt);
+    renderLog();
+  };
+  cEl.appendChild(b);
+});
 
-    logCard.innerHTML = `<h2>내 기록</h2>${items}`;
-  }
-
-  document.getElementById("btnShowLog").addEventListener("click", renderLog);
-  document.getElementById("btnReset").addEventListener("click", () => {
-    if (confirm("이 브라우저에 저장된 기록을 모두 삭제합니다. 계속할까요?")) {
-      localStorage.removeItem(LS_KEY);
-      document.getElementById("logCard").style.display = "none";
-      alert("초기화 완료");
-    }
+/* ===== 로그 ===== */
+function saveLog(q,a){
+  const logs = JSON.parse(localStorage.getItem(LS_KEY)||"[]");
+  logs.unshift({t:new Date().toLocaleString(),q,a});
+  localStorage.setItem(LS_KEY,JSON.stringify(logs));
+}
+function renderLog(){
+  const logs = JSON.parse(localStorage.getItem(LS_KEY)||"[]");
+  logEl.innerHTML="";
+  logs.slice(0,10).forEach(l=>{
+    const d=document.createElement("div");
+    d.className="logitem";
+    d.textContent=`[${l.t}] ${l.a}`;
+    logEl.appendChild(d);
   });
-
-  renderToday();
+}
+renderLog();
 </script>
 </body>
 </html>
