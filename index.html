@@ -1,245 +1,856 @@
 <!doctype html>
 <html lang="ko">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>오늘의선택 · 록스타 RPG</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>오늘의선택 · 방구석 기타리스트 → 록스타 RPG</title>
+  <style>
+    :root{
+      --safe-top: env(safe-area-inset-top);
+      --safe-bot: env(safe-area-inset-bottom);
+      --bg: #0b0f1a;
+      --panel: rgba(255,255,255,0.06);
+      --panel2: rgba(0,0,0,0.35);
+      --border: rgba(255,255,255,0.12);
+      --text: #f0f2ff;
+      --muted: rgba(240,242,255,0.70);
+      --muted2: rgba(240,242,255,0.55);
+      --accent: rgba(255,60,95,0.85);
+    }
 
-<style>
-/* ===== 기본 ===== */
-body {
-  margin:0;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  background:#0b0f1a;
-  color:#f0f2ff;
-}
-.wrap {
-  max-width:860px;
-  margin:0 auto;
-  padding:16px;
-}
-h1 { font-size:20px; margin:0 0 12px 0; }
+    /* 전체 화면(모바일 앱 느낌) */
+    html, body { height: 100%; }
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100svh;
+      overflow: hidden;
+    }
 
-/* ===== 무대 ===== */
-.stage {
-  border-radius:18px;
-  background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
-  border:1px solid rgba(255,255,255,0.12);
-  overflow:hidden;
-}
+    .wrap{
+      max-width: 520px;
+      margin: 0 auto;
+      height: 100svh;
+      padding: calc(12px + var(--safe-top)) 12px calc(12px + var(--safe-bot));
+      box-sizing: border-box;
+    }
 
-/* ===== 캐릭터 영역 ===== */
-.characters {
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:14px;
-  padding:16px;
-}
-.char {
-  display:flex;
-  gap:12px;
-  align-items:center;
-  background:rgba(0,0,0,0.25);
-  border-radius:14px;
-  padding:12px;
-  border:1px solid rgba(255,255,255,0.1);
-}
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
+    }
+    .brand{
+      font-weight: 900;
+      letter-spacing: 0.2px;
+      display:flex; align-items:center; gap:8px;
+      font-size: 16px;
+    }
+    .pill{
+      font-size:12px;
+      padding:6px 10px;
+      border:1px solid var(--border);
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(255,255,255,0.03);
+      white-space: nowrap;
+    }
 
-/* ===== 아바타 ===== */
-.avatar {
-  width:90px;
-  height:90px;
-  border-radius:16px;
-  background:rgba(255,255,255,0.06);
-  display:grid;
-  place-items:center;
-  transform-origin:50% 80%;
-  will-change:transform;
-}
+    .stage{
+      height: calc(100svh - (12px + var(--safe-top) + 12px + var(--safe-bot) + 34px)); /* 대충 topbar 포함 */
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02));
+      display:flex;
+      flex-direction: column;
+    }
 
-/* ===== 움직임 애니메이션 ===== */
-@keyframes idleBreath {
-  0%,100% { transform:translateY(0) scale(1); }
-  50% { transform:translateY(-2px) scale(1.01); }
-}
-@keyframes talkNod {
-  0%,100% { transform:translateY(-1px) rotate(0deg); }
-  25% { transform:translateY(-3px) rotate(-1deg); }
-  75% { transform:translateY(-3px) rotate(1deg); }
-}
-@keyframes reactPop {
-  0% { transform:scale(1); }
-  40% { transform:scale(1.06); }
-  100% { transform:scale(1.01); }
-}
+    .characters{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(0,0,0,0.18);
+    }
+    .char{
+      display:flex;
+      gap: 12px;
+      align-items:center;
+      border:1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.22);
+      border-radius: 14px;
+      padding: 10px;
+    }
+    .avatar{
+      width: 88px;
+      height: 88px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.06);
+      display:grid;
+      place-items:center;
+      transform-origin: 50% 80%;
+      will-change: transform, filter;
+      overflow:hidden;
+      position: relative;
+    }
+    .avatar .emoji{
+      font-size: 30px;
+      filter: drop-shadow(0 10px 18px rgba(0,0,0,0.3));
+    }
+    .meta .name{ font-weight: 900; }
+    .meta .role{ font-size: 12px; color: var(--muted); margin-top:4px; }
 
-.avatar.is-idle { animation: idleBreath 2.8s ease-in-out infinite; }
-.avatar.is-talk { animation: talkNod 0.6s ease-in-out infinite; }
-.avatar.is-react { animation: reactPop 0.35s ease-out; }
+    /* 간단한 “빨간 포인트” */
+    .accent-dot{
+      width:10px; height:10px; border-radius:999px;
+      background: var(--accent);
+      box-shadow: 0 0 18px rgba(255,60,95,0.55);
+      display:inline-block;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
 
-/* ===== 텍스트 ===== */
-.name { font-weight:800; }
-.role { font-size:12px; opacity:0.7; margin-top:4px; }
+    /* 대화/선택 영역 */
+    .dialogue{
+      flex: 1;
+      display:flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 12px;
+      background: var(--panel2);
+      overflow: hidden;
+    }
+    .hud{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      font-size:12px;
+      color: var(--muted);
+    }
+    .progress{
+      display:flex;
+      align-items:center;
+      gap: 8px;
+    }
+    .bar{
+      width: 120px;
+      height: 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      overflow:hidden;
+    }
+    .bar > div{
+      height: 100%;
+      width: 0%;
+      background: rgba(255,255,255,0.75);
+    }
 
-/* ===== 대화 ===== */
-.dialogue {
-  padding:16px;
-  border-top:1px solid rgba(255,255,255,0.12);
-  background:rgba(0,0,0,0.35);
-}
-.question {
-  font-size:18px;
-  font-weight:800;
-  margin-bottom:14px;
-}
-.choices { display:grid; gap:10px; }
-button.choice {
-  padding:12px 14px;
-  font-size:15px;
-  border-radius:12px;
-  background:rgba(255,255,255,0.06);
-  color:#f0f2ff;
-  border:1px solid rgba(255,255,255,0.15);
-  text-align:left;
-}
-button.choice:active { transform:translateY(1px); }
+    .box{
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 14px;
+      padding: 14px;
+      background: rgba(255,255,255,0.05);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+    }
+    .question{
+      margin:0 0 10px 0;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: -0.2px;
+    }
+    .desc{
+      margin: 0 0 12px 0;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.35;
+    }
 
-/* ===== 로그 ===== */
-.log {
-  margin-top:14px;
-  border-radius:16px;
-  border:1px solid rgba(255,255,255,0.12);
-  overflow:hidden;
-}
-.log h2 {
-  margin:0;
-  padding:12px 16px;
-  font-size:14px;
-  background:rgba(0,0,0,0.4);
-}
-.logbody {
-  padding:12px 16px;
-  background:rgba(255,255,255,0.04);
-}
-.logitem {
-  padding:8px 0;
-  border-top:1px solid rgba(255,255,255,0.08);
-  font-size:13px;
-}
-</style>
+    .choices{
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 6px;
+      display:grid;
+      gap: 10px;
+    }
+    button.choice{
+      text-align:left;
+      padding: 14px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      font-size: 16px;
+    }
+    button.choice:active{ transform: translateY(1px); }
+
+    .row{
+      display:flex;
+      gap: 10px;
+      flex-wrap:wrap;
+    }
+    button.ghost{
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: transparent;
+      color: rgba(240,242,255,0.85);
+      font-size: 13px;
+    }
+
+    /* 로그 패널(토글) */
+    .log{
+      display:none;
+      border-top: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      padding: 10px 12px;
+      max-height: 38%;
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .log h3{
+      margin: 0 0 8px 0;
+      font-size: 13px;
+      color: rgba(240,242,255,0.85);
+    }
+    .item{
+      padding: 8px 0;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      font-size: 13px;
+      color: rgba(240,242,255,0.9);
+    }
+    .item .t{ color: var(--muted2); font-size: 12px; }
+    .item .q{ color: var(--muted); font-size: 12px; margin-top: 3px; }
+
+    /* 시작 화면(캐릭터 생성) */
+    #startScreen{
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display:none;
+    }
+    #startScreen .backdrop{
+      position:absolute;
+      inset:0;
+      background: rgba(0,0,0,0.75);
+    }
+    #startScreen .panelWrap{
+      position:relative;
+      height: 100svh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: calc(18px + var(--safe-top)) 16px calc(18px + var(--safe-bot));
+      box-sizing:border-box;
+    }
+    #startScreen .panel{
+      width:100%;
+      max-width: 520px;
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,0.14);
+      background: rgba(10,14,25,0.94);
+      padding: 18px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+    }
+    .title{
+      font-weight: 950;
+      font-size: 18px;
+      margin-bottom: 6px;
+      display:flex; align-items:center; gap:8px;
+    }
+    .subtitle{
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.35;
+      margin-bottom: 14px;
+    }
+    .field{
+      margin: 12px 0;
+    }
+    .field label{
+      display:block;
+      font-size: 12px;
+      color: rgba(240,242,255,0.75);
+      margin-bottom: 6px;
+    }
+    .field input, .field select{
+      width:100%;
+      box-sizing:border-box;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      font-size: 15px;
+      outline: none;
+    }
+    .field input::placeholder{ color: rgba(240,242,255,0.45); }
+
+    .startBtns{
+      display:flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .primary{
+      flex: 1;
+      padding: 13px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,60,95,0.18);
+      color: var(--text);
+      font-weight: 900;
+      font-size: 15px;
+    }
+    .secondary{
+      padding: 13px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: transparent;
+      color: rgba(240,242,255,0.85);
+      font-weight: 800;
+      font-size: 15px;
+      white-space: nowrap;
+    }
+    .warn{
+      margin-top: 10px;
+      font-size: 12px;
+      color: rgba(240,242,255,0.62);
+    }
+
+    /* ===== 캐릭터 움직임(상태) ===== */
+    @keyframes idleBreath {
+      0%, 100% { transform: translateY(0px) scale(1); }
+      50%      { transform: translateY(-2px) scale(1.01); }
+    }
+    @keyframes talkNod {
+      0%, 100% { transform: translateY(-1px) rotate(0deg) scale(1.01); }
+      25%      { transform: translateY(-3px) rotate(-1deg) scale(1.015); }
+      75%      { transform: translateY(-3px) rotate(1deg)  scale(1.015); }
+    }
+    @keyframes reactPop {
+      0%   { transform: translateY(0px) scale(1); }
+      40%  { transform: translateY(-4px) scale(1.05); }
+      100% { transform: translateY(0px) scale(1.01); }
+    }
+    .is-idle { animation: idleBreath 2.8s ease-in-out infinite; }
+    .is-talk { animation: talkNod 0.65s ease-in-out infinite; }
+    .is-react { animation: reactPop 0.35s ease-out; }
+
+    /* 데스크탑에서는 기존처럼 넓게(선택사항) */
+    @media (min-width: 900px){
+      body{ overflow:auto; height:auto; }
+      .wrap{ max-width: 860px; height:auto; padding: 16px; }
+      .stage{ height:auto; }
+      .characters{ grid-template-columns: 1fr 1fr; }
+    }
+  </style>
 </head>
 
 <body>
-<div class="wrap">
-  <h1>🎸 오늘의선택 · 록스타 RPG</h1>
-
-  <div class="stage">
-
-    <!-- 캐릭터 -->
-    <div class="characters">
-      <div class="char">
-        <div class="avatar is-idle" id="playerAvatar">
-          🎸
+  <!-- 시작 화면 -->
+  <div id="startScreen">
+    <div class="backdrop"></div>
+    <div class="panelWrap">
+      <div class="panel">
+        <div class="title">🎸 캐릭터 생성 <span class="accent-dot"></span></div>
+        <div class="subtitle">
+          방구석 기타리스트가 록스타로 성장하는 선택형 RPG.<br>
+          닉네임/나이/성별을 정하면 바로 시작됩니다. (서버 없음 · 이 기기에만 저장)
         </div>
-        <div>
-          <div class="name">플레이어</div>
-          <div class="role">록스타 · 선택하는 자</div>
-        </div>
-      </div>
 
-      <div class="char">
-        <div class="avatar is-idle" id="npcAvatar">
-          ❓
+        <div class="field">
+          <label for="nick">닉네임</label>
+          <input id="nick" maxlength="12" placeholder="예: 토미, 가네트, 방구석왕" />
         </div>
-        <div>
-          <div class="name">질문자</div>
-          <div class="role">너를 시험하는 존재</div>
+
+        <div class="field">
+          <label for="age">나이</label>
+          <select id="age">
+            <option value="">선택</option>
+            <option>10대</option><option>20대</option><option>30대</option><option>40대</option><option>50대+</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="gender">성별</label>
+          <select id="gender">
+            <option value="">선택</option>
+            <option value="남">남</option>
+            <option value="여">여</option>
+            <option value="기타">기타/비공개</option>
+          </select>
+        </div>
+
+        <div class="startBtns">
+          <button class="primary" id="btnStart">시작하기</button>
+          <button class="secondary" id="btnDemo">데모로</button>
+        </div>
+
+        <div class="warn">
+          ※ 닉네임/성별/나이는 점수 계산에만 사용될 수 있고, 외부로 전송되지 않습니다.
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- 대화 -->
-    <div class="dialogue">
-      <div class="question" id="questionText"></div>
-      <div class="choices" id="choices"></div>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">🎸 오늘의선택 · 록스타 RPG</div>
+      <div class="pill" id="userPill">로딩중…</div>
     </div>
 
-  </div>
+    <div class="stage" id="stage">
+      <div class="characters">
+        <div class="char">
+          <div class="avatar is-idle" id="playerAvatar">
+            <div class="emoji">🎸</div>
+          </div>
+          <div class="meta">
+            <div class="name" id="playerName">플레이어</div>
+            <div class="role" id="playerRole">방구석 기타리스트 · 선택하는 자 <span class="accent-dot"></span></div>
+          </div>
+        </div>
 
-  <div class="log">
-    <h2>내 기록</h2>
-    <div class="logbody" id="logBody"></div>
+        <div class="char">
+          <div class="avatar is-talk" id="npcAvatar">
+            <div class="emoji">❓</div>
+          </div>
+          <div class="meta">
+            <div class="name" id="npcName">매니저(머릿속)</div>
+            <div class="role">“오늘도 기타 잡을 거지?”</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dialogue">
+        <div class="hud">
+          <div class="progress">
+            <span id="qIndexText">Q 1/10</span>
+            <div class="bar"><div id="barFill"></div></div>
+          </div>
+          <div id="statusText">선택하면 다음 질문으로 넘어갑니다.</div>
+        </div>
+
+        <div class="box">
+          <p class="question" id="questionText">로딩중…</p>
+          <p class="desc" id="questionDesc"></p>
+          <div class="choices" id="choices"></div>
+          <div class="row" style="margin-top:12px;">
+            <button class="ghost" id="btnToggleLog">내 기록 보기/닫기</button>
+            <button class="ghost" id="btnResetAll">처음부터 다시</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="log" id="logPanel">
+        <h3>내 기록 (이 기기에만 저장)</h3>
+        <div id="logBody"></div>
+      </div>
+    </div>
   </div>
-</div>
 
 <script>
-/* ===== 데이터 ===== */
-const PROMPTS = [
+/** =========================
+ *  저장 키
+ *  ========================= */
+const LS_PROFILE = "mychoice_profile_v1";
+const LS_RUN     = "mychoice_run_v1";     // 진행상황(현재 질문 index, answers)
+const LS_LOG     = "mychoice_log_v1";     // 로그(시간/질문/선택)
+
+/** =========================
+ *  질문(10개) - 방구석 기타리스트 → 록스타
+ *  ========================= */
+const QUESTIONS = [
   {
-    q:"오늘, 무대에 오르기 전 너의 선택은?",
-    options:["끝까지 리허설한다","즉흥을 믿는다","동료와 합을 맞춘다","혼자 집중한다"]
+    q: "오늘 연습을 언제 할래?",
+    desc: "락스타는 타이밍이 아니라 ‘루틴’을 가진다.",
+    options: [
+      "지금 10분만이라도 바로 한다",
+      "저녁에 각 잡고 1시간 한다",
+      "내일 컨디션 좋을 때 한다",
+      "안 한다…(하지만 죄책감은 있다)"
+    ]
   },
   {
-    q:"갈등이 생겼다. 넌?",
-    options:["정면 돌파","한발 물러남","대화로 푼다","무시한다"]
+    q: "기타를 집어드는 이유는?",
+    desc: "목표가 선명하면 흔들려도 다시 돌아온다.",
+    options: [
+      "무대에서 터뜨리고 싶어서",
+      "스트레스 풀려고",
+      "멋있어 보여서",
+      "그냥… 습관처럼"
+    ]
   },
   {
-    q:"새로운 곡을 만든다면?",
-    options:["계획부터","감정부터","레퍼런스 조사","즉흥 연주"]
-  }
+    q: "연습할 때 가장 먼저 하는 건?",
+    desc: "초반 5분이 그날 퀄리티를 결정한다.",
+    options: [
+      "워밍업(크로매틱/스트레칭)",
+      "좋아하는 곡부터 쳐서 텐션 올림",
+      "새로 배우는 프레이즈 파고듦",
+      "유튜브 켜고 ‘보고 따라하기’"
+    ]
+  },
+  {
+    q: "기술이 막힐 때 너의 선택은?",
+    desc: "막히는 구간이 실력의 관문이다.",
+    options: [
+      "메트로놈 켜고 느리게 쪼갠다",
+      "손풀릴 때까지 반복한다",
+      "포기하고 다른 거 한다",
+      "강의/레슨 자료를 찾는다"
+    ]
+  },
+  {
+    q: "녹음/촬영을 한다면?",
+    desc: "기록은 실력 향상의 치트키다.",
+    options: [
+      "짧게라도 매일 기록한다",
+      "주 1회 제대로 찍는다",
+      "가끔 생각날 때만",
+      "부끄러워서 안 한다"
+    ]
+  },
+  {
+    q: "무대(혹은 사람 앞) 공포가 온다면?",
+    desc: "무대는 연습량의 거짓말을 못 본다.",
+    options: [
+      "작게라도 사람 앞에서 자주 해본다",
+      "완벽해질 때까지 숨는다",
+      "친구 1명 앞에서부터 시작",
+      "아예 무대는 내 길이 아닌 듯"
+    ]
+  },
+  {
+    q: "장비 업그레이드 욕구가 폭발했다. 너는?",
+    desc: "장비는 도움이 되지만, 실력은 더 직접적이다.",
+    options: [
+      "지금 있는 걸로 톤 세팅부터 파본다",
+      "필요한 것만 딱 하나 산다",
+      "충동구매 간다(행복은 잠깐)",
+      "리뷰만 3시간 본다(그리고 안 산다)"
+    ]
+  },
+  {
+    q: "밴드(혹은 합주) 제안이 왔다면?",
+    desc: "합주는 실전이고, 실전은 성장이다.",
+    options: [
+      "일단 한다. 부족하면 채우면 됨",
+      "조건(곡/스케줄) 맞으면 한다",
+      "실력 더 쌓고 나중에",
+      "사람 맞추는 게 더 피곤함…"
+    ]
+  },
+  {
+    q: "곡을 만들 기회가 생겼다. 첫 행동은?",
+    desc: "‘내 색’은 결국 쌓인 선택에서 나온다.",
+    options: [
+      "리프부터 뽑는다(손이 먼저)",
+      "감정/스토리부터 잡는다",
+      "레퍼런스 조사하고 구조를 짠다",
+      "즉흥으로 녹음하고 거기서 뽑는다"
+    ]
+  },
+  {
+    q: "마지막 질문. 오늘의 너는 록스타에 가까웠나?",
+    desc: "답은 이미 알고 있다. 그래도 기록해라.",
+    options: [
+      "가까웠다. 행동했다.",
+      "반반. 마음은 있었고 조금 했다.",
+      "멀었다. 하지만 내일은 다르게.",
+      "모르겠다. 그래도 기타는 놓지 않겠다."
+    ]
+  },
 ];
 
-const LS_KEY = "rockstar_choice_log";
+/** =========================
+ *  DOM
+ *  ========================= */
+const startScreen = document.getElementById("startScreen");
+const nickEl = document.getElementById("nick");
+const ageEl = document.getElementById("age");
+const genderEl = document.getElementById("gender");
+const btnStart = document.getElementById("btnStart");
+const btnDemo = document.getElementById("btnDemo");
 
-/* ===== 상태 ===== */
-const player = document.getElementById("playerAvatar");
-const npc = document.getElementById("npcAvatar");
-const qEl = document.getElementById("questionText");
-const cEl = document.getElementById("choices");
-const logEl = document.getElementById("logBody");
+const userPill = document.getElementById("userPill");
+const playerName = document.getElementById("playerName");
+const playerRole = document.getElementById("playerRole");
+const playerAvatar = document.getElementById("playerAvatar");
+const npcAvatar = document.getElementById("npcAvatar");
 
-/* ===== 유틸 ===== */
+const qIndexText = document.getElementById("qIndexText");
+const barFill = document.getElementById("barFill");
+const statusText = document.getElementById("statusText");
+const questionText = document.getElementById("questionText");
+const questionDesc = document.getElementById("questionDesc");
+const choices = document.getElementById("choices");
+
+const btnToggleLog = document.getElementById("btnToggleLog");
+const btnResetAll = document.getElementById("btnResetAll");
+const logPanel = document.getElementById("logPanel");
+const logBody = document.getElementById("logBody");
+
+/** =========================
+ *  유틸
+ *  ========================= */
+function nowKST(){
+  // 단순 표기용(브라우저 locale 기준)
+  return new Date().toLocaleString("ko-KR");
+}
+
 function setState(el, state){
   el.classList.remove("is-idle","is-talk","is-react");
   el.classList.add(state);
 }
 
-/* ===== 질문 표시 ===== */
-const today = PROMPTS[new Date().getDate() % PROMPTS.length];
-qEl.textContent = today.q;
+function loadJSON(key, fallback){
+  try { return JSON.parse(localStorage.getItem(key) || ""); }
+  catch { return fallback; }
+}
 
-setState(npc,"is-talk");
+function saveJSON(key, value){
+  localStorage.setItem(key, JSON.stringify(value));
+}
 
-today.options.forEach(opt=>{
-  const b=document.createElement("button");
-  b.className="choice";
-  b.textContent=opt;
-  b.onclick=()=>{
-    setState(player,"is-react");
-    setTimeout(()=>setState(player,"is-idle"),400);
-    saveLog(today.q,opt);
-    renderLog();
+/** =========================
+ *  프로필(닉/나이/성별)
+ *  ========================= */
+function loadProfile(){
+  return loadJSON(LS_PROFILE, null);
+}
+
+function saveProfile(profile){
+  saveJSON(LS_PROFILE, profile);
+}
+
+function applyProfile(profile){
+  const nick = profile?.nick || "플레이어";
+  const age = profile?.age || "";
+  const gender = profile?.gender || "";
+  playerName.textContent = nick;
+  userPill.textContent = `${nick}${age ? " · "+age : ""}${gender ? " · "+gender : ""}`;
+}
+
+/** =========================
+ *  진행상태
+ *  ========================= */
+function initRun(){
+  const run = { idx: 0, answers: [] };
+  saveJSON(LS_RUN, run);
+  return run;
+}
+
+function loadRun(){
+  return loadJSON(LS_RUN, null);
+}
+
+function saveRun(run){
+  saveJSON(LS_RUN, run);
+}
+
+/** =========================
+ *  로그
+ *  ========================= */
+function addLog(entry){
+  const logs = loadJSON(LS_LOG, []);
+  logs.unshift(entry);
+  saveJSON(LS_LOG, logs);
+}
+
+function renderLog(){
+  const logs = loadJSON(LS_LOG, []);
+  if (logs.length === 0){
+    logBody.innerHTML = `<div class="item"><div class="t">아직 기록이 없습니다.</div></div>`;
+    return;
+  }
+  logBody.innerHTML = logs.slice(0, 50).map(l => `
+    <div class="item">
+      <div class="t">[${l.time}]</div>
+      <div><b>${escapeHTML(l.answer)}</b></div>
+      <div class="q">${escapeHTML(l.question)}</div>
+    </div>
+  `).join("");
+}
+
+function escapeHTML(s){
+  return String(s)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+/** =========================
+ *  질문 렌더링
+ *  ========================= */
+function renderQuestion(run){
+  const total = QUESTIONS.length;
+  const idx = run.idx;
+
+  // 끝났으면 엔딩
+  if (idx >= total){
+    renderEnding(run);
+    return;
+  }
+
+  const q = QUESTIONS[idx];
+  qIndexText.textContent = `Q ${idx+1}/${total}`;
+  barFill.style.width = `${Math.round(((idx) / total) * 100)}%`;
+
+  questionText.textContent = q.q;
+  questionDesc.textContent = q.desc;
+
+  // NPC는 말하기, 플레이어는 대기
+  setState(npcAvatar, "is-talk");
+  setState(playerAvatar, "is-idle");
+
+  choices.innerHTML = "";
+  q.options.forEach((opt, i) => {
+    const b = document.createElement("button");
+    b.className = "choice";
+    b.textContent = `${["A","B","C","D"][i]}. ${opt}`;
+    b.onclick = () => onChoose(run, opt);
+    choices.appendChild(b);
+  });
+
+  statusText.textContent = "선택하면 다음 질문으로 넘어갑니다.";
+}
+
+/** 선택 처리 → 다음 질문 */
+function onChoose(run, answer){
+  const idx = run.idx;
+  const q = QUESTIONS[idx];
+
+  // 플레이어 반응
+  setState(playerAvatar, "is-react");
+  setTimeout(() => setState(playerAvatar, "is-idle"), 380);
+
+  // 저장(진행/답변/로그)
+  run.answers.push({ question: q.q, answer, at: new Date().toISOString() });
+  addLog({ time: nowKST(), question: q.q, answer });
+
+  run.idx += 1;
+  saveRun(run);
+  renderLog();
+
+  // 약간 템포 주고 다음 질문
+  statusText.textContent = "기록 완료. 다음 질문으로 이동…";
+  setTimeout(() => renderQuestion(run), 420);
+}
+
+/** 엔딩 화면 */
+function renderEnding(run){
+  const total = QUESTIONS.length;
+  barFill.style.width = `100%`;
+  qIndexText.textContent = `END · 10/10`;
+  setState(npcAvatar, "is-idle");
+  setState(playerAvatar, "is-idle");
+
+  // 간단 요약(가장 많이 고른 유형 같은 건 아직 안 함 — 추후 확장 가능)
+  const nick = loadProfile()?.nick || "플레이어";
+
+  questionText.textContent = `${nick}의 오늘은 저장됐다.`;
+  questionDesc.textContent =
+    "이건 끝이 아니라 ‘누적’의 시작이다. 내일 또 선택하면 너는 분명 달라진다.";
+
+  choices.innerHTML = `
+    <button class="choice" id="btnRestart">처음부터 다시하기</button>
+    <button class="choice" id="btnCloseLog">내 기록 보기/닫기</button>
+  `;
+
+  document.getElementById("btnRestart").onclick = () => {
+    if (confirm("진행상황(10문항)을 처음부터 다시 할까요? (기록 로그는 유지됩니다)")){
+      const newRun = initRun();
+      renderQuestion(newRun);
+    }
   };
-  cEl.appendChild(b);
+  document.getElementById("btnCloseLog").onclick = () => {
+    toggleLog();
+  };
+
+  statusText.textContent = "엔딩. 다시하기 또는 기록 확인.";
+}
+
+/** 로그 토글 */
+function toggleLog(){
+  const isHidden = getComputedStyle(logPanel).display === "none";
+  logPanel.style.display = isHidden ? "block" : "none";
+}
+
+/** 전체 리셋(프로필 포함) */
+function resetAll(){
+  if (!confirm("프로필/진행/기록을 전부 삭제하고 처음부터 시작할까요?")) return;
+  localStorage.removeItem(LS_PROFILE);
+  localStorage.removeItem(LS_RUN);
+  localStorage.removeItem(LS_LOG);
+  location.reload();
+}
+
+/** =========================
+ *  시작 흐름
+ *  ========================= */
+function showStart(){
+  startScreen.style.display = "block";
+}
+
+function hideStart(){
+  startScreen.style.display = "none";
+}
+
+btnStart.addEventListener("click", () => {
+  const nick = (nickEl.value || "").trim();
+  const age = ageEl.value;
+  const gender = genderEl.value;
+
+  if (!nick || !age || !gender){
+    alert("닉네임/나이/성별을 모두 선택해주세요.");
+    return;
+  }
+  saveProfile({ nick, age, gender });
+  hideStart();
+  boot();
 });
 
-/* ===== 로그 ===== */
-function saveLog(q,a){
-  const logs = JSON.parse(localStorage.getItem(LS_KEY)||"[]");
-  logs.unshift({t:new Date().toLocaleString(),q,a});
-  localStorage.setItem(LS_KEY,JSON.stringify(logs));
+btnDemo.addEventListener("click", () => {
+  saveProfile({ nick: "데모록스타", age: "20대", gender: "기타" });
+  hideStart();
+  boot();
+});
+
+/** =========================
+ *  부팅
+ *  ========================= */
+function boot(){
+  const profile = loadProfile();
+  if (!profile){
+    showStart();
+    return;
+  }
+  applyProfile(profile);
+
+  // run 없으면 새로 시작
+  let run = loadRun();
+  if (!run) run = initRun();
+
+  renderLog();
+  renderQuestion(run);
 }
-function renderLog(){
-  const logs = JSON.parse(localStorage.getItem(LS_KEY)||"[]");
-  logEl.innerHTML="";
-  logs.slice(0,10).forEach(l=>{
-    const d=document.createElement("div");
-    d.className="logitem";
-    d.textContent=`[${l.t}] ${l.a}`;
-    logEl.appendChild(d);
-  });
-}
-renderLog();
+
+/** 버튼 바인딩 */
+btnToggleLog.addEventListener("click", toggleLog);
+btnResetAll.addEventListener("click", resetAll);
+
+/** 시작 */
+boot();
 </script>
 </body>
 </html>
