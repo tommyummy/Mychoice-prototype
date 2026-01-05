@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>오늘의선택 · 방구석 기타리스트 → 록스타 RPG</title>
+  <title>오늘의선택 · 락스타를 꿈꾸는 소녀 (프로토타입)</title>
   <style>
     :root{
       --safe-top: env(safe-area-inset-top);
@@ -99,10 +99,15 @@
       overflow:hidden;
       position: relative;
     }
-    .avatar .emoji{
-      font-size: 30px;
-      filter: drop-shadow(0 10px 18px rgba(0,0,0,0.3));
+
+    /* ✅ 플레이어 아바타(이미지) */
+    .avatar img{
+      width:100%;
+      height:100%;
+      object-fit: contain;
+      filter: drop-shadow(0 10px 18px rgba(0,0,0,0.35));
     }
+
     .meta .name{ font-weight: 900; }
     .meta .role{ font-size: 12px; color: var(--muted); margin-top:4px; }
 
@@ -361,13 +366,13 @@
       <div class="panel">
         <div class="title">🎸 캐릭터 생성 <span class="accent-dot"></span></div>
         <div class="subtitle">
-          방구석 기타리스트가 록스타로 성장하는 선택형 RPG.<br>
+          <b>락스타를 꿈꾸는 소녀</b>가 성장하는 선택형 RPG.<br>
           닉네임/나이/성별을 정하면 바로 시작됩니다. (서버 없음 · 이 기기에만 저장)
         </div>
 
         <div class="field">
           <label for="nick">닉네임</label>
-          <input id="nick" maxlength="12" placeholder="예: 토미, 가네트, 방구석왕" />
+          <input id="nick" maxlength="12" placeholder="예: 토미, 가네트, 락스타꿈나무" />
         </div>
 
         <div class="field">
@@ -402,25 +407,26 @@
 
   <div class="wrap">
     <div class="topbar">
-      <div class="brand">🎸 오늘의선택 · 록스타 RPG</div>
+      <div class="brand">🎸 오늘의선택 · 락스타를 꿈꾸는 소녀 (프로토타입)</div>
       <div class="pill" id="userPill">로딩중…</div>
     </div>
 
     <div class="stage" id="stage">
       <div class="characters">
         <div class="char">
+          <!-- ✅ 플레이어: 이미지 + 기존 애니메이션 유지 -->
           <div class="avatar is-idle" id="playerAvatar">
-            <div class="emoji">🎸</div>
+            <img src="assets/character/rockstar.png" alt="락스타를 꿈꾸는 소녀">
           </div>
           <div class="meta">
             <div class="name" id="playerName">플레이어</div>
-            <div class="role" id="playerRole">방구석 기타리스트 · 선택하는 자 <span class="accent-dot"></span></div>
+            <div class="role" id="playerRole">락스타를 꿈꾸는 소녀 · 선택하는 자 <span class="accent-dot"></span></div>
           </div>
         </div>
 
         <div class="char">
           <div class="avatar is-talk" id="npcAvatar">
-            <div class="emoji">❓</div>
+            <div style="font-size:30px; filter: drop-shadow(0 10px 18px rgba(0,0,0,0.3));">💬</div>
           </div>
           <div class="meta">
             <div class="name" id="npcName">매니저(머릿속)</div>
@@ -461,118 +467,36 @@
  *  저장 키
  *  ========================= */
 const LS_PROFILE = "mychoice_profile_v1";
-const LS_RUN     = "mychoice_run_v1";     // 진행상황(현재 질문 index, answers)
-const LS_LOG     = "mychoice_log_v1";     // 로그(시간/질문/선택)
+const LS_RUN     = "mychoice_run_v1";
+const LS_LOG     = "mychoice_log_v1";
 
 /** =========================
- *  질문(10개) - 방구석 기타리스트 → 록스타
+ *  질문(10개) - 튜토리얼/성장형
  *  ========================= */
 const QUESTIONS = [
-  {
-    q: "오늘 연습을 언제 할래?",
-    desc: "락스타는 타이밍이 아니라 ‘루틴’을 가진다.",
-    options: [
-      "지금 10분만이라도 바로 한다",
-      "저녁에 각 잡고 1시간 한다",
-      "내일 컨디션 좋을 때 한다",
-      "안 한다…(하지만 죄책감은 있다)"
-    ]
-  },
-  {
-    q: "기타를 집어드는 이유는?",
-    desc: "목표가 선명하면 흔들려도 다시 돌아온다.",
-    options: [
-      "무대에서 터뜨리고 싶어서",
-      "스트레스 풀려고",
-      "멋있어 보여서",
-      "그냥… 습관처럼"
-    ]
-  },
-  {
-    q: "연습할 때 가장 먼저 하는 건?",
-    desc: "초반 5분이 그날 퀄리티를 결정한다.",
-    options: [
-      "워밍업(크로매틱/스트레칭)",
-      "좋아하는 곡부터 쳐서 텐션 올림",
-      "새로 배우는 프레이즈 파고듦",
-      "유튜브 켜고 ‘보고 따라하기’"
-    ]
-  },
-  {
-    q: "기술이 막힐 때 너의 선택은?",
-    desc: "막히는 구간이 실력의 관문이다.",
-    options: [
-      "메트로놈 켜고 느리게 쪼갠다",
-      "손풀릴 때까지 반복한다",
-      "포기하고 다른 거 한다",
-      "강의/레슨 자료를 찾는다"
-    ]
-  },
-  {
-    q: "녹음/촬영을 한다면?",
-    desc: "기록은 실력 향상의 치트키다.",
-    options: [
-      "짧게라도 매일 기록한다",
-      "주 1회 제대로 찍는다",
-      "가끔 생각날 때만",
-      "부끄러워서 안 한다"
-    ]
-  },
-  {
-    q: "무대(혹은 사람 앞) 공포가 온다면?",
-    desc: "무대는 연습량의 거짓말을 못 본다.",
-    options: [
-      "작게라도 사람 앞에서 자주 해본다",
-      "완벽해질 때까지 숨는다",
-      "친구 1명 앞에서부터 시작",
-      "아예 무대는 내 길이 아닌 듯"
-    ]
-  },
-  {
-    q: "장비 업그레이드 욕구가 폭발했다. 너는?",
-    desc: "장비는 도움이 되지만, 실력은 더 직접적이다.",
-    options: [
-      "지금 있는 걸로 톤 세팅부터 파본다",
-      "필요한 것만 딱 하나 산다",
-      "충동구매 간다(행복은 잠깐)",
-      "리뷰만 3시간 본다(그리고 안 산다)"
-    ]
-  },
-  {
-    q: "밴드(혹은 합주) 제안이 왔다면?",
-    desc: "합주는 실전이고, 실전은 성장이다.",
-    options: [
-      "일단 한다. 부족하면 채우면 됨",
-      "조건(곡/스케줄) 맞으면 한다",
-      "실력 더 쌓고 나중에",
-      "사람 맞추는 게 더 피곤함…"
-    ]
-  },
-  {
-    q: "곡을 만들 기회가 생겼다. 첫 행동은?",
-    desc: "‘내 색’은 결국 쌓인 선택에서 나온다.",
-    options: [
-      "리프부터 뽑는다(손이 먼저)",
-      "감정/스토리부터 잡는다",
-      "레퍼런스 조사하고 구조를 짠다",
-      "즉흥으로 녹음하고 거기서 뽑는다"
-    ]
-  },
-  {
-    q: "마지막 질문. 오늘의 너는 록스타에 가까웠나?",
-    desc: "답은 이미 알고 있다. 그래도 기록해라.",
-    options: [
-      "가까웠다. 행동했다.",
-      "반반. 마음은 있었고 조금 했다.",
-      "멀었다. 하지만 내일은 다르게.",
-      "모르겠다. 그래도 기타는 놓지 않겠다."
-    ]
-  },
+  { q:"오늘 연습을 언제 할래?", desc:"락스타는 타이밍이 아니라 ‘루틴’을 가진다.",
+    options:["지금 10분만이라도 바로 한다","저녁에 각 잡고 1시간 한다","내일 컨디션 좋을 때 한다","안 한다…(하지만 죄책감은 있다)"] },
+  { q:"기타를 집어드는 이유는?", desc:"목표가 선명하면 흔들려도 다시 돌아온다.",
+    options:["무대에서 터뜨리고 싶어서","스트레스 풀려고","멋있어 보여서","그냥… 습관처럼"] },
+  { q:"연습할 때 가장 먼저 하는 건?", desc:"초반 5분이 그날 퀄리티를 결정한다.",
+    options:["워밍업(크로매틱/스트레칭)","좋아하는 곡부터 쳐서 텐션 올림","새로 배우는 프레이즈 파고듦","유튜브 켜고 ‘보고 따라하기’"] },
+  { q:"기술이 막힐 때 너의 선택은?", desc:"막히는 구간이 실력의 관문이다.",
+    options:["메트로놈 켜고 느리게 쪼갠다","손풀릴 때까지 반복한다","포기하고 다른 거 한다","강의/레슨 자료를 찾는다"] },
+  { q:"녹음/촬영을 한다면?", desc:"기록은 실력 향상의 치트키다.",
+    options:["짧게라도 매일 기록한다","주 1회 제대로 찍는다","가끔 생각날 때만","부끄러워서 안 한다"] },
+  { q:"사람 앞 공포가 온다면?", desc:"무대는 연습량의 거짓말을 못 본다.",
+    options:["작게라도 사람 앞에서 자주 해본다","완벽해질 때까지 숨는다","친구 1명 앞에서부터 시작","아예 무대는 내 길이 아닌 듯"] },
+  { q:"장비 업그레이드 욕구가 폭발!", desc:"장비는 도움이 되지만, 실력은 더 직접적이다.",
+    options:["지금 있는 걸로 톤 세팅부터 파본다","필요한 것만 딱 하나 산다","충동구매 간다(행복은 잠깐)","리뷰만 3시간 본다(그리고 안 산다)"] },
+  { q:"밴드/합주 제안이 왔다면?", desc:"합주는 실전이고, 실전은 성장이다.",
+    options:["일단 한다. 부족하면 채우면 됨","조건(곡/스케줄) 맞으면 한다","실력 더 쌓고 나중에","사람 맞추는 게 더 피곤함…"] },
+  { q:"곡을 만들 기회가 생겼다.", desc:"‘내 색’은 결국 쌓인 선택에서 나온다.",
+    options:["리프부터 뽑는다(손이 먼저)","감정/스토리부터 잡는다","레퍼런스 조사하고 구조를 짠다","즉흥으로 녹음하고 거기서 뽑는다"] },
+  { q:"마지막 질문. 오늘의 너는?", desc:"끝이 아니라 누적의 시작이다.",
+    options:["가까웠다. 행동했다.","반반. 마음은 있었고 조금 했다.","멀었다. 하지만 내일은 다르게.","모르겠다. 그래도 기타는 놓지 않겠다."] },
 ];
 
-/** =========================
- *  DOM
- *  ========================= */
+/** DOM */
 const startScreen = document.getElementById("startScreen");
 const nickEl = document.getElementById("nick");
 const ageEl = document.getElementById("age");
@@ -598,73 +522,54 @@ const btnResetAll = document.getElementById("btnResetAll");
 const logPanel = document.getElementById("logPanel");
 const logBody = document.getElementById("logBody");
 
-/** =========================
- *  유틸
- *  ========================= */
-function nowKST(){
-  // 단순 표기용(브라우저 locale 기준)
-  return new Date().toLocaleString("ko-KR");
-}
-
+/** 유틸 */
+function nowKST(){ return new Date().toLocaleString("ko-KR"); }
 function setState(el, state){
   el.classList.remove("is-idle","is-talk","is-react");
   el.classList.add(state);
 }
-
 function loadJSON(key, fallback){
   try { return JSON.parse(localStorage.getItem(key) || ""); }
   catch { return fallback; }
 }
+function saveJSON(key, value){ localStorage.setItem(key, JSON.stringify(value)); }
 
-function saveJSON(key, value){
-  localStorage.setItem(key, JSON.stringify(value));
-}
-
-/** =========================
- *  프로필(닉/나이/성별)
- *  ========================= */
-function loadProfile(){
-  return loadJSON(LS_PROFILE, null);
-}
-
-function saveProfile(profile){
-  saveJSON(LS_PROFILE, profile);
-}
-
+/** 프로필 */
+function loadProfile(){ return loadJSON(LS_PROFILE, null); }
+function saveProfile(profile){ saveJSON(LS_PROFILE, profile); }
 function applyProfile(profile){
   const nick = profile?.nick || "플레이어";
   const age = profile?.age || "";
   const gender = profile?.gender || "";
   playerName.textContent = nick;
   userPill.textContent = `${nick}${age ? " · "+age : ""}${gender ? " · "+gender : ""}`;
+  // 역할 문구도 살짝 더 테마 맞춤
+  playerRole.innerHTML = `락스타를 꿈꾸는 소녀 · ${nick} <span class="accent-dot"></span>`;
 }
 
-/** =========================
- *  진행상태
- *  ========================= */
+/** 진행 */
 function initRun(){
   const run = { idx: 0, answers: [] };
   saveJSON(LS_RUN, run);
   return run;
 }
+function loadRun(){ return loadJSON(LS_RUN, null); }
+function saveRun(run){ saveJSON(LS_RUN, run); }
 
-function loadRun(){
-  return loadJSON(LS_RUN, null);
-}
-
-function saveRun(run){
-  saveJSON(LS_RUN, run);
-}
-
-/** =========================
- *  로그
- *  ========================= */
+/** 로그 */
 function addLog(entry){
   const logs = loadJSON(LS_LOG, []);
   logs.unshift(entry);
   saveJSON(LS_LOG, logs);
 }
-
+function escapeHTML(s){
+  return String(s)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
 function renderLog(){
   const logs = loadJSON(LS_LOG, []);
   if (logs.length === 0){
@@ -680,23 +585,11 @@ function renderLog(){
   `).join("");
 }
 
-function escapeHTML(s){
-  return String(s)
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-}
-
-/** =========================
- *  질문 렌더링
- *  ========================= */
+/** 질문 렌더 */
 function renderQuestion(run){
   const total = QUESTIONS.length;
   const idx = run.idx;
 
-  // 끝났으면 엔딩
   if (idx >= total){
     renderEnding(run);
     return;
@@ -709,7 +602,6 @@ function renderQuestion(run){
   questionText.textContent = q.q;
   questionDesc.textContent = q.desc;
 
-  // NPC는 말하기, 플레이어는 대기
   setState(npcAvatar, "is-talk");
   setState(playerAvatar, "is-idle");
 
@@ -725,16 +617,13 @@ function renderQuestion(run){
   statusText.textContent = "선택하면 다음 질문으로 넘어갑니다.";
 }
 
-/** 선택 처리 → 다음 질문 */
 function onChoose(run, answer){
   const idx = run.idx;
   const q = QUESTIONS[idx];
 
-  // 플레이어 반응
   setState(playerAvatar, "is-react");
   setTimeout(() => setState(playerAvatar, "is-idle"), 380);
 
-  // 저장(진행/답변/로그)
   run.answers.push({ question: q.q, answer, at: new Date().toISOString() });
   addLog({ time: nowKST(), question: q.q, answer });
 
@@ -742,20 +631,16 @@ function onChoose(run, answer){
   saveRun(run);
   renderLog();
 
-  // 약간 템포 주고 다음 질문
   statusText.textContent = "기록 완료. 다음 질문으로 이동…";
   setTimeout(() => renderQuestion(run), 420);
 }
 
-/** 엔딩 화면 */
 function renderEnding(run){
-  const total = QUESTIONS.length;
   barFill.style.width = `100%`;
   qIndexText.textContent = `END · 10/10`;
   setState(npcAvatar, "is-idle");
   setState(playerAvatar, "is-idle");
 
-  // 간단 요약(가장 많이 고른 유형 같은 건 아직 안 함 — 추후 확장 가능)
   const nick = loadProfile()?.nick || "플레이어";
 
   questionText.textContent = `${nick}의 오늘은 저장됐다.`;
@@ -773,20 +658,16 @@ function renderEnding(run){
       renderQuestion(newRun);
     }
   };
-  document.getElementById("btnCloseLog").onclick = () => {
-    toggleLog();
-  };
+  document.getElementById("btnCloseLog").onclick = () => toggleLog();
 
   statusText.textContent = "엔딩. 다시하기 또는 기록 확인.";
 }
 
-/** 로그 토글 */
 function toggleLog(){
   const isHidden = getComputedStyle(logPanel).display === "none";
   logPanel.style.display = isHidden ? "block" : "none";
 }
 
-/** 전체 리셋(프로필 포함) */
 function resetAll(){
   if (!confirm("프로필/진행/기록을 전부 삭제하고 처음부터 시작할까요?")) return;
   localStorage.removeItem(LS_PROFILE);
@@ -795,16 +676,9 @@ function resetAll(){
   location.reload();
 }
 
-/** =========================
- *  시작 흐름
- *  ========================= */
-function showStart(){
-  startScreen.style.display = "block";
-}
-
-function hideStart(){
-  startScreen.style.display = "none";
-}
+/** 시작 흐름 */
+function showStart(){ startScreen.style.display = "block"; }
+function hideStart(){ startScreen.style.display = "none"; }
 
 btnStart.addEventListener("click", () => {
   const nick = (nickEl.value || "").trim();
@@ -826,9 +700,6 @@ btnDemo.addEventListener("click", () => {
   boot();
 });
 
-/** =========================
- *  부팅
- *  ========================= */
 function boot(){
   const profile = loadProfile();
   if (!profile){
@@ -837,7 +708,6 @@ function boot(){
   }
   applyProfile(profile);
 
-  // run 없으면 새로 시작
   let run = loadRun();
   if (!run) run = initRun();
 
@@ -845,11 +715,9 @@ function boot(){
   renderQuestion(run);
 }
 
-/** 버튼 바인딩 */
 btnToggleLog.addEventListener("click", toggleLog);
 btnResetAll.addEventListener("click", resetAll);
 
-/** 시작 */
 boot();
 </script>
 </body>
