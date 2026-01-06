@@ -10,226 +10,212 @@
       --safe-top: env(safe-area-inset-top);
       --safe-bot: env(safe-area-inset-bottom);
 
-      --bg: #0b0f1a;
-      --panel: rgba(255,255,255,0.06);
-      --panel2: rgba(0,0,0,0.35);
-      --border: rgba(255,255,255,0.12);
+      --panel: rgba(10,14,25,0.80);
+      --panel2: rgba(0,0,0,0.45);
+      --border: rgba(255,255,255,0.14);
       --text: #f0f2ff;
       --muted: rgba(240,242,255,0.70);
       --muted2: rgba(240,242,255,0.55);
-      --accent: rgba(255,60,95,0.85);
+      --accent: rgba(255,60,95,0.90);
     }
 
     html, body { height: 100%; }
     body{
       margin:0;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      background: var(--bg);
       color: var(--text);
       height: 100svh;
       overflow: hidden;
+      background: #05070f;
     }
 
-    .wrap{
-      max-width: 520px;
-      margin: 0 auto;
-      height: 100svh;
-      padding: calc(12px + var(--safe-top)) 12px calc(12px + var(--safe-bot));
-      box-sizing: border-box;
+    /* ====== 게임 루트 ====== */
+    #game{
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
     }
 
-    .topbar{
+    /* ====== 배경(세로 풀스크린) ====== */
+    .bg{
+      position:absolute;
+      inset:0;
+      background: url("assets/bg/stage_vertical.png") center bottom / cover no-repeat;
+      transform: scale(1.01);
+      z-index:0;
+    }
+    .bg::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        radial-gradient(900px 600px at 50% 20%, rgba(255,60,95,0.18), transparent 55%),
+        linear-gradient(180deg, rgba(0,0,0,0.18), rgba(0,0,0,0.62));
+    }
+
+    /* ====== 상단 HUD ====== */
+    .topHUD{
+      position:absolute;
+      top:0; left:0; right:0;
+      padding: calc(12px + var(--safe-top)) 12px 10px;
+      z-index: 30;
       display:flex;
-      align-items:center;
+      align-items:flex-start;
       justify-content:space-between;
       gap:10px;
-      margin-bottom:10px;
+      pointer-events:none;
     }
     .brand{
-      font-weight: 900;
-      letter-spacing: 0.2px;
-      display:flex; align-items:center; gap:8px;
-      font-size: 16px;
+      pointer-events:auto;
+      font-weight: 950;
+      letter-spacing: -0.2px;
+      text-shadow: 0 10px 30px rgba(0,0,0,0.45);
+      line-height: 1.05;
+      font-size: 18px;
+    }
+    .brand .sub{
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+      margin-top: 4px;
     }
     .pill{
+      pointer-events:auto;
       font-size:12px;
-      padding:6px 10px;
+      padding:8px 10px;
       border:1px solid var(--border);
       border-radius: 999px;
-      color: var(--muted);
-      background: rgba(255,255,255,0.03);
+      color: rgba(240,242,255,0.88);
+      background: rgba(0,0,0,0.35);
+      backdrop-filter: blur(6px);
       white-space: nowrap;
-      max-width: 52%;
-      overflow: hidden;
-      text-overflow: ellipsis;
     }
 
-    .stage{
-      height: calc(100svh - (12px + var(--safe-top) + 12px + var(--safe-bot) + 34px));
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      overflow: hidden;
-      background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02));
+    /* ====== 캐릭터 무대 ====== */
+    .scene{
+      position:absolute;
+      inset:0;
+      z-index:10;
       display:flex;
-      flex-direction: column;
+      align-items:flex-end;
+      justify-content:center;
+      padding-bottom: calc(210px + var(--safe-bot)); /* 하단 UI 공간 */
+      pointer-events:none;
     }
-
-    .characters{
-      padding: 12px;
-      border-bottom: 1px solid var(--border);
-      background: rgba(0,0,0,0.18);
-      display:grid;
-      gap: 10px;
-    }
-
-    .char{
-      display:flex;
-      gap: 12px;
-      align-items:center;
-      border:1px solid rgba(255,255,255,0.10);
-      background: rgba(0,0,0,0.22);
-      border-radius: 14px;
-      padding: 10px;
-    }
-
-    .meta .name{ font-weight: 900; }
-    .meta .role{ font-size: 12px; color: var(--muted); margin-top:4px; }
-
-    .accent-dot{
-      width:10px; height:10px; border-radius:999px;
-      background: var(--accent);
-      box-shadow: 0 0 18px rgba(255,60,95,0.55);
-      display:inline-block;
-      margin-left: 6px;
-      vertical-align: middle;
-    }
-
-    /* ======== (핵심) 캐릭터 스프라이트 레이어 ======== */
-    .sprite{
-      width: 128px;
-      height: 128px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.06);
-      overflow: hidden;
+    .doll{
       position: relative;
-      flex: 0 0 auto;
-      display:grid;
-      place-items:center;
-    }
-
-    /* “미리보기 칸 안”에서 합성하는 캔버스 */
-    .sprite .canvas{
-      position: relative;
-      width: 128px;
-      height: 128px;
-      transform-origin: 50% 80%;
-      will-change: transform;
-    }
-
-    /* === 여기 4개 값만 조정하면 레이어 위치 딱 맞음 ===
-       (단위는 px. +는 오른쪽/아래, -는 왼쪽/위)
-    */
-    .sprite{
-      --body-x: 18px;
-      --body-y: -4px;
-
-      --guitar-x: 10px;
-      --guitar-y: 52px;
-
-      --fret-x: 40px;
-      --fret-y: 58px;
-
-      --pick-x: 18px;
-      --pick-y: 60px;
+      width: min(92vw, 560px);
+      aspect-ratio: 9 / 16;
+      max-height: 74svh;
+      filter: drop-shadow(0 30px 60px rgba(0,0,0,0.55));
     }
 
     .layer{
       position:absolute;
-      image-rendering: auto;
-      -webkit-user-drag: none;
+      left:0; top:0;
+      width:100%;
+      height:auto;
       user-select:none;
+      -webkit-user-drag:none;
       pointer-events:none;
-      filter: drop-shadow(0 8px 14px rgba(0,0,0,0.35));
+      will-change: transform;
     }
 
-    /* 각 레이어는 “원본 크기 그대로” 올리고, 전체를 scale로 줄임 */
-    .body   { left: var(--body-x);   top: var(--body-y);   width: 282px; height: auto; }
-    .guitar { left: var(--guitar-x); top: var(--guitar-y); width: 470px; height: auto; }
-    .fret   { left: var(--fret-x);   top: var(--fret-y);   width: 1216px; height: auto; }
-    .pick   { left: var(--pick-x);   top: var(--pick-y);   width: 667px; height: auto; }
-
-    /* 캔버스 스케일: 원본들이 너무 커서 줄여서 128칸에 들어가게 */
-    .sprite .canvas{
-      transform: scale(0.20);
+    /* 레이어 배치(필요하면 여기 숫자만 조정) */
+    /* body는 인형 전체 프레임 기준으로 중앙 */
+    #bodyLayer{
+      left: 6%;
+      top: 6%;
+      width: 88%;
+      z-index: 1;
+      transform-origin: 50% 70%;
     }
 
-    /* ======== 모션(피킹/프렛) ======== */
+    /* 기타(몸 위에 올라가게) */
+    #guitarLayer{
+      left: 16%;
+      top: 37%;
+      width: 78%;
+      z-index: 2;
+      transform-origin: 29% 50%; /* 네 메모값 */
+    }
+
+    /* 프렛(왼손+넥) */
+    #fretArmLayer{
+      left: 28%;
+      top: 31%;
+      width: 78%;
+      z-index: 3;
+      transform-origin: 20% 50%; /* 네 메모값 */
+    }
+
+    /* 피킹(오른손) */
+    #pickArmLayer{
+      left: 48%;
+      top: 44%;
+      width: 44%;
+      z-index: 4;
+      transform-origin: 34% 48%; /* 네 메모값 */
+    }
+
+    /* ====== 간단 애니메이션 ====== */
     @keyframes idleBreath {
-      0%, 100% { transform: translateY(0px) scale(0.20); }
-      50%      { transform: translateY(-4px) scale(0.205); }
+      0%,100% { transform: translateY(0px) scale(1); }
+      50%     { transform: translateY(-2px) scale(1.01); }
     }
-    @keyframes fretWiggle {
-      0%, 100% { transform: translateY(0px) rotate(0deg); }
-      50%      { transform: translateY(-8px) rotate(-0.6deg); }
+    @keyframes strumOnce {
+      0%   { transform: rotate(0deg) translateY(0px); }
+      30%  { transform: rotate(-10deg) translateY(1px); }
+      65%  { transform: rotate(8deg) translateY(-1px); }
+      100% { transform: rotate(0deg) translateY(0px); }
     }
-    @keyframes pickStrum {
-      0%   { transform: rotate(10deg) translateY(0px); }
-      50%  { transform: rotate(-18deg) translateY(6px); }
-      100% { transform: rotate(10deg) translateY(0px); }
-    }
-    @keyframes pickHitOnce {
-      0%   { transform: rotate(12deg) translateY(0px); }
-      35%  { transform: rotate(-30deg) translateY(8px); }
-      65%  { transform: rotate(18deg) translateY(2px); }
-      100% { transform: rotate(12deg) translateY(0px); }
+    @keyframes fretNudge {
+      0%   { transform: rotate(0deg) translateX(0px); }
+      50%  { transform: rotate(-2deg) translateX(-1px); }
+      100% { transform: rotate(0deg) translateX(0px); }
     }
 
-    .anim-idle .canvas{
-      animation: idleBreath 2.6s ease-in-out infinite;
+    .idle { animation: idleBreath 3.0s ease-in-out infinite; }
+    .strum { animation: strumOnce 220ms ease-out 1; }
+    .fret { animation: fretNudge 260ms ease-out 1; }
+
+    /* ====== 하단 UI 패널 ====== */
+    .ui{
+      position:absolute;
+      left:0; right:0; bottom:0;
+      z-index: 20;
+      padding: 12px 12px calc(12px + var(--safe-bot));
     }
 
-    .anim-play .pick{
-      /* “팔꿈치쪽”을 축으로 흔들어야 해서 origin을 안쪽으로 */
-      transform-origin: 34% 48%;
-      animation: pickStrum 0.42s ease-in-out infinite;
+    .panel{
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: var(--panel);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 30px 80px rgba(0,0,0,0.50);
+      overflow:hidden;
     }
 
-    .anim-play .fret{
-      transform-origin: 20% 50%;
-      animation: fretWiggle 1.2s ease-in-out infinite;
-    }
-
-    .hit-once .pick{
-      transform-origin: 34% 48%;
-      animation: pickHitOnce 0.38s ease-out 1;
-    }
-
-    /* ======== 대화/선택 UI ======== */
-    .dialogue{
-      flex: 1;
-      display:flex;
-      flex-direction: column;
-      gap: 10px;
-      padding: 12px;
-      background: var(--panel2);
-      overflow: hidden;
-    }
-    .hud{
+    .hudRow{
       display:flex;
       align-items:center;
       justify-content:space-between;
       gap: 10px;
-      font-size:12px;
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.12);
+      font-size: 12px;
       color: var(--muted);
     }
+
     .progress{
       display:flex;
       align-items:center;
-      gap: 8px;
+      gap: 10px;
+      min-width: 170px;
     }
     .bar{
-      width: 120px;
+      flex: 1;
       height: 8px;
       border-radius: 999px;
       border: 1px solid rgba(255,255,255,0.14);
@@ -239,36 +225,38 @@
     .bar > div{
       height: 100%;
       width: 0%;
-      background: rgba(255,255,255,0.75);
+      background: rgba(255,255,255,0.78);
     }
 
-    .box{
-      border: 1px solid rgba(255,255,255,0.14);
-      border-radius: 14px;
+    .content{
       padding: 14px;
-      background: rgba(255,255,255,0.05);
-      box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+      max-height: min(44svh, 420px);
     }
-    .question{
-      margin:0 0 10px 0;
+
+    .q{
       font-size: 18px;
-      font-weight: 900;
+      font-weight: 950;
       letter-spacing: -0.2px;
+      margin:0;
     }
     .desc{
-      margin: 0 0 12px 0;
+      margin:0;
       font-size: 13px;
       color: var(--muted);
       line-height: 1.35;
     }
 
     .choices{
-      overflow:auto;
-      -webkit-overflow-scrolling: touch;
-      padding-bottom: 6px;
       display:grid;
       gap: 10px;
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
+      padding-right: 2px;
     }
+
     button.choice{
       text-align:left;
       padding: 14px 14px;
@@ -284,41 +272,42 @@
       display:flex;
       gap: 10px;
       flex-wrap:wrap;
-      margin-top: 12px;
+      padding-top: 2px;
     }
     button.ghost{
       padding: 10px 12px;
       border-radius: 12px;
       border: 1px solid rgba(255,255,255,0.14);
       background: transparent;
-      color: rgba(240,242,255,0.85);
+      color: rgba(240,242,255,0.86);
       font-size: 13px;
     }
 
+    /* 로그(하단에서 위로 펼침) */
     .log{
       display:none;
-      border-top: 1px solid var(--border);
+      border-top: 1px solid rgba(255,255,255,0.10);
       background: rgba(255,255,255,0.03);
-      padding: 10px 12px;
-      max-height: 38%;
+      padding: 10px 14px 14px;
+      max-height: 34svh;
       overflow:auto;
       -webkit-overflow-scrolling: touch;
     }
     .log h3{
       margin: 0 0 8px 0;
       font-size: 13px;
-      color: rgba(240,242,255,0.85);
+      color: rgba(240,242,255,0.88);
     }
     .item{
       padding: 8px 0;
       border-top: 1px solid rgba(255,255,255,0.08);
       font-size: 13px;
-      color: rgba(240,242,255,0.9);
+      color: rgba(240,242,255,0.92);
     }
     .item .t{ color: var(--muted2); font-size: 12px; }
-    .item .q{ color: var(--muted); font-size: 12px; margin-top: 3px; }
+    .item .q2{ color: var(--muted); font-size: 12px; margin-top: 3px; }
 
-    /* 시작 화면 */
+    /* ===== 시작 화면 ===== */
     #startScreen{
       position: fixed;
       inset: 0;
@@ -328,39 +317,41 @@
     #startScreen .backdrop{
       position:absolute;
       inset:0;
-      background: rgba(0,0,0,0.75);
+      background: rgba(0,0,0,0.78);
     }
     #startScreen .panelWrap{
       position:relative;
       height: 100svh;
       display:flex;
-      align-items:center;
+      align-items:flex-end;
       justify-content:center;
-      padding: calc(18px + var(--safe-top)) 16px calc(18px + var(--safe-bot));
+      padding: calc(14px + var(--safe-top)) 12px calc(14px + var(--safe-bot));
       box-sizing:border-box;
     }
-    #startScreen .panel{
+    #startScreen .card{
       width:100%;
-      max-width: 520px;
+      max-width: 560px;
       border-radius: 18px;
       border:1px solid rgba(255,255,255,0.14);
       background: rgba(10,14,25,0.94);
-      padding: 18px;
+      padding: 16px;
       box-shadow: 0 20px 60px rgba(0,0,0,0.45);
     }
     .title{
       font-weight: 950;
       font-size: 18px;
-      margin-bottom: 6px;
-      display:flex; align-items:center; gap:8px;
+      margin:0 0 6px 0;
+      display:flex;
+      align-items:center;
+      gap:8px;
     }
     .subtitle{
       font-size: 13px;
       color: var(--muted);
       line-height: 1.35;
-      margin-bottom: 14px;
+      margin: 0 0 12px 0;
     }
-    .field{ margin: 12px 0; }
+    .field{ margin: 10px 0; }
     .field label{
       display:block;
       font-size: 12px;
@@ -378,11 +369,10 @@
       font-size: 15px;
       outline: none;
     }
-
     .startBtns{
       display:flex;
       gap: 10px;
-      margin-top: 14px;
+      margin-top: 12px;
     }
     .primary{
       flex: 1;
@@ -391,7 +381,7 @@
       border: 1px solid rgba(255,255,255,0.18);
       background: rgba(255,60,95,0.18);
       color: var(--text);
-      font-weight: 900;
+      font-weight: 950;
       font-size: 15px;
     }
     .secondary{
@@ -399,16 +389,15 @@
       border-radius: 14px;
       border: 1px solid rgba(255,255,255,0.14);
       background: transparent;
-      color: rgba(240,242,255,0.85);
-      font-weight: 800;
+      color: rgba(240,242,255,0.86);
+      font-weight: 900;
       font-size: 15px;
       white-space: nowrap;
     }
-
-    @media (min-width: 900px){
-      body{ overflow:auto; height:auto; }
-      .wrap{ max-width: 860px; height:auto; padding: 16px; }
-      .stage{ height:auto; }
+    .warn{
+      margin-top: 8px;
+      font-size: 12px;
+      color: rgba(240,242,255,0.62);
     }
   </style>
 </head>
@@ -418,17 +407,16 @@
   <div id="startScreen">
     <div class="backdrop"></div>
     <div class="panelWrap">
-      <div class="panel">
-        <div class="title">🎸 캐릭터 생성 <span class="accent-dot"></span></div>
-        <div class="subtitle">
-          “락스타를 꿈꾸는 소녀” 선택형 RPG 프로토타입.<br>
+      <div class="card">
+        <p class="title">🎸 캐릭터 생성</p>
+        <p class="subtitle">
+          락스타를 꿈꾸는 소녀의 선택형 RPG.<br>
           닉네임/나이/성별을 정하면 바로 시작됩니다. (서버 없음 · 이 기기에만 저장)
-        </div>
+        </p>
 
         <div class="field">
           <label for="nick">닉네임</label>
-          <!-- ✅ 예시 제거 -->
-          <input id="nick" maxlength="12" placeholder="" />
+          <input id="nick" maxlength="12" />
         </div>
 
         <div class="field">
@@ -451,301 +439,415 @@
 
         <div class="startBtns">
           <button class="primary" id="btnStart">시작하기</button>
-          <button class="secondary" id="btnDemo">데모로</button>
+          <button class="secondary" id="btnDemo">데모</button>
+        </div>
+
+        <div class="warn">
+          ※ 닉네임/성별/나이는 외부로 전송되지 않습니다.
         </div>
       </div>
     </div>
   </div>
 
-  <div class="wrap">
-    <div class="topbar">
-      <div class="brand">🎸 오늘의선택 · 락스타를 꿈꾸는 소녀 (프로토타입)</div>
+  <div id="game">
+    <div class="bg"></div>
+
+    <div class="topHUD">
+      <div class="brand">
+        🎸 오늘의선택 · 락스타를 꿈꾸는 소녀
+        <div class="sub">프로토타입 · 선택이 누적되는 게임</div>
+      </div>
       <div class="pill" id="userPill">로딩중…</div>
     </div>
 
-    <div class="stage">
-      <div class="characters">
-        <div class="char">
-          <!-- ✅ 플레이어 스프라이트(레이어 합성) -->
-          <div class="sprite anim-idle anim-play" id="playerSprite" title="선택/탭하면 한 번 더 세게 스트럼">
-            <div class="canvas">
-              <img class="layer body"   src="assets/character/rockstar_body.png"   alt="">
-              <img class="layer guitar" src="assets/character/rockstar_guitar.png" alt="">
-              <img class="layer fret"   src="assets/character/rockstar_fret_arm.png" alt="">
-              <img class="layer pick"   src="assets/character/rockstar_pick_arm.png" alt="">
-            </div>
-          </div>
-          <div class="meta">
-            <div class="name" id="playerName">플레이어</div>
-            <div class="role" id="playerRole">락스타를 꿈꾸는 소녀 <span class="accent-dot"></span></div>
-          </div>
-        </div>
-
-        <div class="char">
-          <div class="sprite anim-idle" style="display:grid;place-items:center;">
-            <div style="font-size:28px;opacity:.95;">💬</div>
-          </div>
-          <div class="meta">
-            <div class="name" id="npcName">매니저(머릿속)</div>
-            <div class="role">“오늘도 기타 잡을 거지?”</div>
-          </div>
-        </div>
+    <div class="scene">
+      <div class="doll idle" id="doll">
+        <!-- 파일명/경로는 여기서만 관리 -->
+        <img id="bodyLayer"    class="layer" alt="body"   />
+        <img id="guitarLayer"  class="layer" alt="guitar" />
+        <img id="fretArmLayer" class="layer" alt="fret"   />
+        <img id="pickArmLayer" class="layer" alt="pick"   />
       </div>
+    </div>
 
-      <div class="dialogue">
-        <div class="hud">
+    <div class="ui">
+      <div class="panel">
+        <div class="hudRow">
           <div class="progress">
-            <span id="qIndexText">Q 1/10</span>
+            <span id="qIndexText">Q 1/15</span>
             <div class="bar"><div id="barFill"></div></div>
           </div>
           <div id="statusText">선택하면 다음 질문으로 넘어갑니다.</div>
         </div>
 
-        <div class="box">
-          <p class="question" id="questionText">로딩중…</p>
+        <div class="content">
+          <p class="q" id="questionText">로딩중…</p>
           <p class="desc" id="questionDesc"></p>
+
           <div class="choices" id="choices"></div>
 
           <div class="row">
-            <button class="ghost" id="btnToggleLog">내 기록 보기/닫기</button>
-            <button class="ghost" id="btnResetAll">처음부터 다시</button>
+            <button class="ghost" id="btnToggleLog">내 기록</button>
+            <button class="ghost" id="btnResetRun">진행 초기화</button>
+            <button class="ghost" id="btnResetAll">전부 삭제</button>
           </div>
         </div>
-      </div>
 
-      <div class="log" id="logPanel">
-        <h3>내 기록 (이 기기에만 저장)</h3>
-        <div id="logBody"></div>
+        <div class="log" id="logPanel">
+          <h3>내 기록 (이 기기에만 저장)</h3>
+          <div id="logBody"></div>
+        </div>
       </div>
     </div>
   </div>
 
 <script>
-  const LS_PROFILE = "mychoice_profile_v2";
-  const LS_RUN     = "mychoice_run_v2";
-  const LS_LOG     = "mychoice_log_v2";
+/** =========================
+ *  에셋 경로(여기만 맞추면 됨)
+ *  ========================= */
+const ASSET = {
+  body:     "assets/character/rockstar_body.png",
+  guitar:   "assets/character/rockstar_guitar.png",
+  fretArm:  "assets/character/rockstar_fret_arm.png",
+  pickArm:  "assets/character/rockstar_pick_arm.png"
+};
 
-  const QUESTIONS = [
-    { q:"오늘 연습을 언제 할래?", desc:"락스타는 타이밍이 아니라 ‘루틴’을 가진다.", options:["지금 10분만이라도 바로 한다","저녁에 각 잡고 1시간 한다","내일 컨디션 좋을 때 한다","안 한다…(하지만 죄책감은 있다)"]},
-    { q:"기타를 집어드는 이유는?", desc:"목표가 선명하면 흔들려도 다시 돌아온다.", options:["무대에서 터뜨리고 싶어서","스트레스 풀려고","멋있어 보여서","그냥… 습관처럼"]},
-    { q:"연습할 때 가장 먼저 하는 건?", desc:"초반 5분이 그날 퀄리티를 결정한다.", options:["워밍업(크로매틱/스트레칭)","좋아하는 곡부터 쳐서 텐션 올림","새로 배우는 프레이즈 파고듦","유튜브 켜고 ‘보고 따라하기’"]},
-    { q:"기술이 막힐 때 너의 선택은?", desc:"막히는 구간이 실력의 관문이다.", options:["메트로놈 켜고 느리게 쪼갠다","손풀릴 때까지 반복한다","포기하고 다른 거 한다","강의/레슨 자료를 찾는다"]},
-    { q:"녹음/촬영을 한다면?", desc:"기록은 실력 향상의 치트키다.", options:["짧게라도 매일 기록한다","주 1회 제대로 찍는다","가끔 생각날 때만","부끄러워서 안 한다"]},
-    { q:"무대(혹은 사람 앞) 공포가 온다면?", desc:"무대는 연습량의 거짓말을 못 본다.", options:["작게라도 사람 앞에서 자주 해본다","완벽해질 때까지 숨는다","친구 1명 앞에서부터 시작","아예 무대는 내 길이 아닌 듯"]},
-    { q:"장비 업그레이드 욕구가 폭발했다. 너는?", desc:"장비는 도움이 되지만, 실력은 더 직접적이다.", options:["지금 있는 걸로 톤 세팅부터 파본다","필요한 것만 딱 하나 산다","충동구매 간다(행복은 잠깐)","리뷰만 3시간 본다(그리고 안 산다)"]},
-    { q:"밴드(혹은 합주) 제안이 왔다면?", desc:"합주는 실전이고, 실전은 성장이다.", options:["일단 한다. 부족하면 채우면 됨","조건(곡/스케줄) 맞으면 한다","실력 더 쌓고 나중에","사람 맞추는 게 더 피곤함…"]},
-    { q:"곡을 만들 기회가 생겼다. 첫 행동은?", desc:"‘내 색’은 결국 쌓인 선택에서 나온다.", options:["리프부터 뽑는다(손이 먼저)","감정/스토리부터 잡는다","레퍼런스 조사하고 구조를 짠다","즉흥으로 녹음하고 거기서 뽑는다"]},
-    { q:"마지막. 오늘의 너는 록스타에 가까웠나?", desc:"답은 이미 알고 있다. 그래도 기록해라.", options:["가까웠다. 행동했다.","반반. 마음은 있었고 조금 했다.","멀었다. 하지만 내일은 다르게.","모르겠다. 그래도 기타는 놓지 않겠다."]},
-  ];
+/** =========================
+ *  로컬 저장 키
+ *  ========================= */
+const LS_PROFILE = "mychoice_profile_v2";
+const LS_RUN     = "mychoice_run_v2";
+const LS_LOG     = "mychoice_log_v2";
 
-  const startScreen = document.getElementById("startScreen");
-  const nickEl = document.getElementById("nick");
-  const ageEl = document.getElementById("age");
-  const genderEl = document.getElementById("gender");
-  const btnStart = document.getElementById("btnStart");
-  const btnDemo = document.getElementById("btnDemo");
+/** =========================
+ *  질문(15개) - 전문적 + 재밌게
+ *  ========================= */
+const QUESTIONS = [
+  { q:"오늘 기타를 집어드는 이유는?", desc:"시작의 동기는 매번 다르지만, 방향은 누적된다.",
+    options:["지금 치지 않으면 안 될 것 같아서","루틴이니까 자연스럽게","머릿속이 시끄러워서","사실… 오늘은 망설이고 있다"] },
 
-  const userPill = document.getElementById("userPill");
-  const playerName = document.getElementById("playerName");
+  { q:"연습을 시작할 때 가장 먼저 하는 행동은?", desc:"첫 5분은 하루의 질을 결정한다.",
+    options:["크로매틱/스트레칭으로 손을 푼다","어제 치다 만 프레이즈부터 이어간다","좋아하는 곡을 한 번 크게 친다","유튜브/레슨 영상을 켠다"] },
 
-  const playerSprite = document.getElementById("playerSprite");
+  { q:"템포가 안 맞을 때 너의 선택은?", desc:"속도는 실력이 아니라 결과다.",
+    options:["메트로놈 켜고 절반 속도로 쪼갠다","느낌이 올 때까지 반복한다","다른 파트로 넘어간다","오늘은 이 곡을 포기한다"] },
 
-  const qIndexText = document.getElementById("qIndexText");
-  const barFill = document.getElementById("barFill");
-  const statusText = document.getElementById("statusText");
-  const questionText = document.getElementById("questionText");
-  const questionDesc = document.getElementById("questionDesc");
-  const choices = document.getElementById("choices");
+  { q:"‘연습이 잘 된다’고 느끼는 기준은?", desc:"기분이 아니라 측정 가능해야 성장한다.",
+    options:["어제보다 명확히 좋아진 게 들린다","끝까지 끊기지 않는다","실수해도 회복이 빠르다","뭔가 멋있게 느껴지면 성공"] },
 
-  const btnToggleLog = document.getElementById("btnToggleLog");
-  const btnResetAll = document.getElementById("btnResetAll");
-  const logPanel = document.getElementById("logPanel");
-  const logBody = document.getElementById("logBody");
+  { q:"지금 가장 약한 요소는 뭐야?", desc:"약점을 말로 고르면, 연습이 방향을 가진다.",
+    options:["리듬/그루브","피킹 정확도","코드 전환/클린톤","표현력(뉘앙스, 다이내믹)"] },
 
-  function nowKST(){ return new Date().toLocaleString("ko-KR"); }
+  { q:"기타 톤이 마음에 안 들 때, 첫 점검은?", desc:"장비보다 ‘신호 흐름’이 먼저다.",
+    options:["볼륨/톤/픽업 포지션부터","앰프 EQ를 극단으로 돌려 기준 찾기","케이블/노이즈/접촉부터 확인","결국 장비 탓이라 생각한다"] },
 
-  function loadJSON(key, fallback){
-    try { return JSON.parse(localStorage.getItem(key) || ""); }
-    catch { return fallback; }
+  { q:"연습 루틴을 짠다면 가장 먼저 넣는 건?", desc:"기술은 루틴에서 자란다.",
+    options:["워밍업 + 크로매틱","리듬 훈련(메트로놈/스트럼 패턴)","레퍼토리(곡 완주)","즉흥/프레이즈 만들기"] },
+
+  { q:"녹음/촬영을 하면 어떤 방식이 편해?", desc:"기록은 잔혹하지만, 가장 공정하다.",
+    options:["짧게 매일(30초라도)","주 1회 제대로 세팅해서","가끔 생각날 때만","부끄러워서 안 한다"] },
+
+  { q:"합주/밴드 제안이 왔다. 너의 선택은?", desc:"실전은 실력을 당겨온다.",
+    options:["일단 한다. 부족하면 채우면 됨","조건(곡/스케줄) 맞으면","실력 더 쌓고 나중에","사람 맞추는 게 피곤하다"] },
+
+  { q:"관객이 있다는 상상을 하면 뭐가 제일 무섭나?", desc:"공포를 언어로 바꾸면, 대처가 생긴다.",
+    options:["실수할까 봐","표정/자세가 어색할까 봐","톤이 별로일까 봐","내가 별로일까 봐"] },
+
+  { q:"솔로가 깨끗하게 안 나올 때, 너는?", desc:"‘느낌’은 세부 조작에서 나온다.",
+    options:["피킹 각도/힘부터 고친다","왼손 압력/뮤트부터","메트로놈 + 구간 반복","일단 속도로 밀어붙인다"] },
+
+  { q:"곡을 만든다면 첫 출발점은?", desc:"창작은 ‘시작점 선택’이 반이다.",
+    options:["리프(손이 먼저)","멜로디(흥얼거림)","가사/감정(스토리)","레퍼런스 구조 분석"] },
+
+  { q:"오늘 ‘공부’에 쓸 수 있는 시간은?", desc:"시간은 현실이고, 선택은 전략이다.",
+    options:["10분(하지만 확실히)","30분(루틴 가능)","1시간(집중 가능)","오늘은 없다(회복이 먼저)"] },
+
+  { q:"슬럼프가 오면 너는 어떤 타입?", desc:"슬럼프는 고장이 아니라 신호다.",
+    options:["기술을 더 파고들며 버틴다","곡을 바꿔서 재미를 찾는다","쉬고 다시 시작한다","자책하다가 멈춘다"] },
+
+  { q:"마지막. 오늘의 너는 한 걸음이었나?", desc:"성장은 ‘완벽’이 아니라 ‘누적’이다.",
+    options:["응. 행동했다.","반반. 그래도 했다.","아니. 하지만 내일은 다르게.","모르겠다. 그래도 기타는 놓지 않겠다."] },
+];
+
+/** =========================
+ *  DOM
+ *  ========================= */
+const startScreen = document.getElementById("startScreen");
+const nickEl = document.getElementById("nick");
+const ageEl = document.getElementById("age");
+const genderEl = document.getElementById("gender");
+const btnStart = document.getElementById("btnStart");
+const btnDemo = document.getElementById("btnDemo");
+
+const userPill = document.getElementById("userPill");
+
+const doll = document.getElementById("doll");
+const bodyLayer = document.getElementById("bodyLayer");
+const guitarLayer = document.getElementById("guitarLayer");
+const fretArmLayer = document.getElementById("fretArmLayer");
+const pickArmLayer = document.getElementById("pickArmLayer");
+
+const qIndexText = document.getElementById("qIndexText");
+const barFill = document.getElementById("barFill");
+const statusText = document.getElementById("statusText");
+const questionText = document.getElementById("questionText");
+const questionDesc = document.getElementById("questionDesc");
+const choices = document.getElementById("choices");
+
+const btnToggleLog = document.getElementById("btnToggleLog");
+const btnResetRun = document.getElementById("btnResetRun");
+const btnResetAll = document.getElementById("btnResetAll");
+const logPanel = document.getElementById("logPanel");
+const logBody = document.getElementById("logBody");
+
+/** =========================
+ *  유틸
+ *  ========================= */
+function nowKST(){
+  return new Date().toLocaleString("ko-KR");
+}
+function loadJSON(key, fallback){
+  try { return JSON.parse(localStorage.getItem(key) || ""); }
+  catch { return fallback; }
+}
+function saveJSON(key, value){
+  localStorage.setItem(key, JSON.stringify(value));
+}
+function escapeHTML(s){
+  return String(s)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+/** =========================
+ *  프로필
+ *  ========================= */
+function loadProfile(){ return loadJSON(LS_PROFILE, null); }
+function saveProfile(profile){ saveJSON(LS_PROFILE, profile); }
+function applyProfile(profile){
+  const nick = profile?.nick || "플레이어";
+  const age = profile?.age || "";
+  const gender = profile?.gender || "";
+  userPill.textContent = `${nick}${age ? " · "+age : ""}${gender ? " · "+gender : ""}`;
+}
+
+/** =========================
+ *  진행 상태
+ *  ========================= */
+function initRun(){
+  const run = { idx: 0, answers: [] };
+  saveJSON(LS_RUN, run);
+  return run;
+}
+function loadRun(){ return loadJSON(LS_RUN, null); }
+function saveRun(run){ saveJSON(LS_RUN, run); }
+
+/** =========================
+ *  로그
+ *  ========================= */
+function addLog(entry){
+  const logs = loadJSON(LS_LOG, []);
+  logs.unshift(entry);
+  saveJSON(LS_LOG, logs);
+}
+function renderLog(){
+  const logs = loadJSON(LS_LOG, []);
+  if (logs.length === 0){
+    logBody.innerHTML = `<div class="item"><div class="t">아직 기록이 없습니다.</div></div>`;
+    return;
   }
-  function saveJSON(key, value){ localStorage.setItem(key, JSON.stringify(value)); }
+  logBody.innerHTML = logs.slice(0, 60).map(l => `
+    <div class="item">
+      <div class="t">[${escapeHTML(l.time)}]</div>
+      <div><b>${escapeHTML(l.answer)}</b></div>
+      <div class="q2">${escapeHTML(l.question)}</div>
+    </div>
+  `).join("");
+}
 
-  function loadProfile(){ return loadJSON(LS_PROFILE, null); }
-  function saveProfile(p){ saveJSON(LS_PROFILE, p); }
-  function applyProfile(p){
-    const nick = p?.nick || "플레이어";
-    const age = p?.age || "";
-    const gender = p?.gender || "";
-    playerName.textContent = nick;
-    userPill.textContent = `${nick}${age ? " · "+age : ""}${gender ? " · "+gender : ""}`;
+/** =========================
+ *  캐릭터 로드 + 오류 확인
+ *  ========================= */
+function bindImg(imgEl, src){
+  imgEl.src = src;
+  imgEl.onerror = () => {
+    console.error("이미지 로드 실패:", src);
+    // iOS에서 깨졌을 때 티 나게
+    imgEl.style.opacity = "0.15";
+  };
+}
+function loadCharacterAssets(){
+  bindImg(bodyLayer, ASSET.body);
+  bindImg(guitarLayer, ASSET.guitar);
+  bindImg(fretArmLayer, ASSET.fretArm);
+  bindImg(pickArmLayer, ASSET.pickArm);
+}
+
+/** =========================
+ *  모션
+ *  ========================= */
+function strumOnce(){
+  pickArmLayer.classList.remove("strum");
+  // reflow
+  void pickArmLayer.offsetWidth;
+  pickArmLayer.classList.add("strum");
+
+  fretArmLayer.classList.remove("fret");
+  void fretArmLayer.offsetWidth;
+  fretArmLayer.classList.add("fret");
+}
+
+/** =========================
+ *  질문 렌더링
+ *  ========================= */
+function renderQuestion(run){
+  const total = QUESTIONS.length;
+  const idx = run.idx;
+
+  if (idx >= total){
+    renderEnding(run);
+    return;
   }
 
-  function initRun(){ const run = { idx:0, answers:[] }; saveJSON(LS_RUN, run); return run; }
-  function loadRun(){ return loadJSON(LS_RUN, null); }
-  function saveRun(run){ saveJSON(LS_RUN, run); }
+  const q = QUESTIONS[idx];
 
-  function addLog(entry){
-    const logs = loadJSON(LS_LOG, []);
-    logs.unshift(entry);
-    saveJSON(LS_LOG, logs);
-  }
-  function escapeHTML(s){
-    return String(s)
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
-  }
-  function renderLog(){
-    const logs = loadJSON(LS_LOG, []);
-    if (logs.length === 0){
-      logBody.innerHTML = `<div class="item"><div class="t">아직 기록이 없습니다.</div></div>`;
-      return;
+  qIndexText.textContent = `Q ${idx+1}/${total}`;
+  barFill.style.width = `${Math.round((idx / total) * 100)}%`;
+
+  questionText.textContent = q.q;
+  questionDesc.textContent = q.desc;
+
+  choices.innerHTML = "";
+  q.options.forEach((opt, i) => {
+    const b = document.createElement("button");
+    b.className = "choice";
+    b.textContent = `${["A","B","C","D"][i]}. ${opt}`;
+    b.onclick = () => onChoose(run, opt);
+    choices.appendChild(b);
+  });
+
+  statusText.textContent = "선택하면 다음 질문으로 넘어갑니다.";
+}
+
+function onChoose(run, answer){
+  const idx = run.idx;
+  const q = QUESTIONS[idx];
+
+  // 모션
+  strumOnce();
+
+  // 저장
+  run.answers.push({ question: q.q, answer, at: new Date().toISOString() });
+  addLog({ time: nowKST(), question: q.q, answer });
+
+  run.idx += 1;
+  saveRun(run);
+  renderLog();
+
+  statusText.textContent = "기록 완료. 다음 질문으로 이동…";
+  setTimeout(() => renderQuestion(run), 260);
+}
+
+function renderEnding(run){
+  const total = QUESTIONS.length;
+  barFill.style.width = "100%";
+  qIndexText.textContent = `END · ${total}/${total}`;
+
+  const nick = loadProfile()?.nick || "플레이어";
+  questionText.textContent = `${nick}의 오늘은 저장됐다.`;
+  questionDesc.textContent = "이건 끝이 아니라 누적의 시작이다. 내일 또 선택하면 너는 분명 달라진다.";
+
+  choices.innerHTML = `
+    <button class="choice" id="btnRestart">처음부터 다시하기</button>
+    <button class="choice" id="btnToggleLog2">내 기록 보기/닫기</button>
+  `;
+
+  document.getElementById("btnRestart").onclick = () => {
+    if (confirm("진행(15문항)을 처음부터 다시 할까요? (기록 로그는 유지)")){
+      const newRun = initRun();
+      renderQuestion(newRun);
     }
-    logBody.innerHTML = logs.slice(0,50).map(l => `
-      <div class="item">
-        <div class="t">[${l.time}]</div>
-        <div><b>${escapeHTML(l.answer)}</b></div>
-        <div class="q">${escapeHTML(l.question)}</div>
-      </div>
-    `).join("");
+  };
+  document.getElementById("btnToggleLog2").onclick = toggleLog;
+
+  statusText.textContent = "엔딩. 다시하기 또는 기록 확인.";
+}
+
+/** =========================
+ *  버튼
+ *  ========================= */
+function toggleLog(){
+  const isHidden = getComputedStyle(logPanel).display === "none";
+  logPanel.style.display = isHidden ? "block" : "none";
+}
+function resetRun(){
+  if (!confirm("진행상황(문항)을 초기화할까요? (기록 로그는 유지)")) return;
+  initRun();
+  const run = loadRun();
+  renderQuestion(run);
+}
+function resetAll(){
+  if (!confirm("프로필/진행/기록을 전부 삭제하고 처음부터 시작할까요?")) return;
+  localStorage.removeItem(LS_PROFILE);
+  localStorage.removeItem(LS_RUN);
+  localStorage.removeItem(LS_LOG);
+  location.reload();
+}
+
+btnToggleLog.addEventListener("click", toggleLog);
+btnResetRun.addEventListener("click", resetRun);
+btnResetAll.addEventListener("click", resetAll);
+
+/** =========================
+ *  시작 화면 흐름
+ *  ========================= */
+function showStart(){ startScreen.style.display = "block"; }
+function hideStart(){ startScreen.style.display = "none"; }
+
+btnStart.addEventListener("click", () => {
+  const nick = (nickEl.value || "").trim();
+  const age = ageEl.value;
+  const gender = genderEl.value;
+
+  if (!nick || !age || !gender){
+    alert("닉네임/나이/성별을 모두 선택해주세요.");
+    return;
   }
-
-  function toggleLog(){
-    const isHidden = getComputedStyle(logPanel).display === "none";
-    logPanel.style.display = isHidden ? "block" : "none";
-  }
-  function resetAll(){
-    if (!confirm("프로필/진행/기록을 전부 삭제하고 처음부터 시작할까요?")) return;
-    localStorage.removeItem(LS_PROFILE);
-    localStorage.removeItem(LS_RUN);
-    localStorage.removeItem(LS_LOG);
-    location.reload();
-  }
-
-  function renderEnding(run){
-    barFill.style.width = `100%`;
-    qIndexText.textContent = `END · 10/10`;
-    const nick = loadProfile()?.nick || "플레이어";
-
-    questionText.textContent = `${nick}의 오늘은 저장됐다.`;
-    questionDesc.textContent =
-      "이건 끝이 아니라 ‘누적’의 시작이다. 내일 또 선택하면 너는 분명 달라진다.";
-
-    choices.innerHTML = `
-      <button class="choice" id="btnRestart">처음부터 다시하기</button>
-      <button class="choice" id="btnCloseLog">내 기록 보기/닫기</button>
-    `;
-    document.getElementById("btnRestart").onclick = () => {
-      if (confirm("진행상황(10문항)을 처음부터 다시 할까요? (기록 로그는 유지됩니다)")){
-        const newRun = initRun();
-        renderQuestion(newRun);
-      }
-    };
-    document.getElementById("btnCloseLog").onclick = toggleLog;
-
-    statusText.textContent = "엔딩. 다시하기 또는 기록 확인.";
-  }
-
-  function renderQuestion(run){
-    const total = QUESTIONS.length;
-    const idx = run.idx;
-
-    if (idx >= total){ renderEnding(run); return; }
-
-    const q = QUESTIONS[idx];
-    qIndexText.textContent = `Q ${idx+1}/${total}`;
-    barFill.style.width = `${Math.round(((idx) / total) * 100)}%`;
-
-    questionText.textContent = q.q;
-    questionDesc.textContent = q.desc;
-
-    choices.innerHTML = "";
-    q.options.forEach((opt, i) => {
-      const b = document.createElement("button");
-      b.className = "choice";
-      b.textContent = `${["A","B","C","D"][i]}. ${opt}`;
-      b.onclick = () => onChoose(run, opt);
-      choices.appendChild(b);
-    });
-
-    statusText.textContent = "선택하면 다음 질문으로 넘어갑니다.";
-  }
-
-  // ✅ 선택 시 “한 번 더 세게 스트럼” + 다음 질문
-  function hitOnce(){
-    playerSprite.classList.remove("hit-once");
-    void playerSprite.offsetWidth; // reflow
-    playerSprite.classList.add("hit-once");
-    setTimeout(()=>playerSprite.classList.remove("hit-once"), 450);
-  }
-
-  function onChoose(run, answer){
-    const idx = run.idx;
-    const q = QUESTIONS[idx];
-
-    hitOnce();
-
-    run.answers.push({ question: q.q, answer, at: new Date().toISOString() });
-    addLog({ time: nowKST(), question: q.q, answer });
-
-    run.idx += 1;
-    saveRun(run);
-    renderLog();
-
-    statusText.textContent = "기록 완료. 다음 질문으로 이동…";
-    setTimeout(() => renderQuestion(run), 420);
-  }
-
-  function showStart(){ startScreen.style.display = "block"; }
-  function hideStart(){ startScreen.style.display = "none"; }
-
-  btnStart.addEventListener("click", () => {
-    const nick = (nickEl.value || "").trim();
-    const age = ageEl.value;
-    const gender = genderEl.value;
-    if (!nick || !age || !gender){
-      alert("닉네임/나이/성별을 모두 선택해주세요.");
-      return;
-    }
-    saveProfile({ nick, age, gender });
-    hideStart();
-    boot();
-  });
-
-  btnDemo.addEventListener("click", () => {
-    saveProfile({ nick:"데모", age:"20대", gender:"기타" });
-    hideStart();
-    boot();
-  });
-
-  btnToggleLog.addEventListener("click", toggleLog);
-  btnResetAll.addEventListener("click", resetAll);
-
-  // ✅ 스프라이트를 탭해도 “한 번 치기”
-  playerSprite.addEventListener("click", hitOnce);
-
-  // ✅ 이미지 로드 실패 디버깅(콘솔에 즉시 찍힘)
-  document.querySelectorAll('img.layer').forEach(img=>{
-    img.addEventListener('error', ()=>{
-      console.error("이미지 로드 실패:", img.getAttribute('src'));
-    });
-  });
-
-  function boot(){
-    const profile = loadProfile();
-    if (!profile){ showStart(); return; }
-    applyProfile(profile);
-
-    let run = loadRun();
-    if (!run) run = initRun();
-
-    renderLog();
-    renderQuestion(run);
-  }
-
+  saveProfile({ nick, age, gender });
+  hideStart();
   boot();
+});
+
+btnDemo.addEventListener("click", () => {
+  saveProfile({ nick: "데모록스타", age: "20대", gender: "기타" });
+  hideStart();
+  boot();
+});
+
+/** =========================
+ *  부팅
+ *  ========================= */
+function boot(){
+  loadCharacterAssets();
+
+  const profile = loadProfile();
+  if (!profile){
+    showStart();
+    return;
+  }
+  applyProfile(profile);
+
+  let run = loadRun();
+  if (!run) run = initRun();
+
+  renderLog();
+  renderQuestion(run);
+}
+
+boot();
 </script>
 </body>
 </html>
