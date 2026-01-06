@@ -6,159 +6,263 @@
   <title>오늘의 선택 · 락스타를 꿈꾸는 소녀</title>
 
   <style>
-    * {
-      box-sizing: border-box;
-      font-family: -apple-system, BlinkMacSystemFont, "Noto Sans KR", sans-serif;
-    }
-
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Noto Sans KR", sans-serif; }
+    html, body { height: 100%; }
     body {
       margin: 0;
-      min-height: 100vh;
       background: #000;
       color: #fff;
+      overflow-x: hidden;
+    }
+
+    /* ===== 풀스크린 스테이지 ===== */
+    .stage {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
     }
 
     /* 배경 */
     .bg {
-      position: fixed;
+      position: absolute;
       inset: 0;
       background: url("./assets/character/bg/stage_vertical.png") center / cover no-repeat;
-      filter: brightness(0.7);
-      z-index: -1;
+      filter: brightness(0.75);
+      transform: scale(1.02); /* 가장자리 빈틈 방지 */
     }
 
-    /* 공통 카드 */
+    /* 캐릭터 레이어 그룹 */
+    .character {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    /* 공통 레이어 이미지 */
+    .layer {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      height: auto;
+      image-rendering: auto;
+      filter: drop-shadow(0 10px 25px rgba(0,0,0,0.55));
+    }
+
+    /*
+      ✅ 핵심: "세로모드 기준"으로 비율/위치를 고정
+      - top / width만 조정하면 됨
+      - 일단 자연스럽게 보이는 기본값을 넣어둠
+    */
+
+    /* 몸통 */
+    .body {
+      top: 10vh;
+      width: min(92vw, 520px);
+      opacity: 0.98;
+    }
+
+    /* 기타 */
+    .guitar {
+      top: 22vh;
+      width: min(98vw, 560px);
+    }
+
+    /* 프렛 잡는 팔 */
+    .fret-arm {
+      top: 20vh;
+      width: min(98vw, 560px);
+    }
+
+    /* 피킹 팔(살짝 흔들리게) */
+    .pick-arm {
+      top: 26vh;
+      width: min(98vw, 560px);
+      transform: translateX(-50%) rotate(0deg);
+      transform-origin: 60% 40%;
+      animation: pick 1.2s ease-in-out infinite;
+      opacity: 0.98;
+    }
+
+    @keyframes pick {
+      0%   { transform: translateX(-50%) rotate(-1.2deg); }
+      50%  { transform: translateX(-50%) rotate( 1.2deg); }
+      100% { transform: translateX(-50%) rotate(-1.2deg); }
+    }
+
+    /* ===== UI 카드(질문/시작) ===== */
+    .ui {
+      position: absolute;
+      left: 50%;
+      bottom: env(safe-area-inset-bottom);
+      transform: translateX(-50%);
+      width: min(92vw, 520px);
+      padding: 0 0 18px;
+    }
+
     .card {
-      max-width: 420px;
-      margin: 80px auto 0;
-      padding: 24px;
-      background: rgba(20, 20, 20, 0.9);
-      border-radius: 16px;
-      box-shadow: 0 0 40px rgba(0,0,0,0.6);
+      margin: 0 auto;
+      padding: 18px 16px;
+      background: rgba(10, 10, 12, 0.72);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      box-shadow: 0 18px 60px rgba(0,0,0,0.55);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
 
     h1 {
-      font-size: 20px;
-      margin-bottom: 12px;
+      font-size: 18px;
+      margin: 0 0 10px;
+      line-height: 1.25;
     }
 
-    label {
-      display: block;
-      margin-top: 16px;
-      font-size: 14px;
-      opacity: 0.85;
-    }
+    p { margin: 0 0 10px; opacity: 0.85; }
 
+    label { display: block; margin-top: 12px; font-size: 13px; opacity: 0.85; }
     input, select {
       width: 100%;
       margin-top: 6px;
       padding: 12px;
-      border-radius: 10px;
-      border: none;
-      background: #111;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(0,0,0,0.35);
       color: #fff;
       font-size: 16px;
+      outline: none;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
     }
 
     button {
       width: 100%;
-      margin-top: 20px;
+      margin-top: 14px;
       padding: 14px;
-      border-radius: 12px;
-      border: none;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.10);
       font-size: 16px;
       cursor: pointer;
-      background: #333;
+      background: rgba(255,255,255,0.10);
       color: #fff;
     }
+    button.primary { background: rgba(255,255,255,0.18); }
+    button:active { transform: scale(0.99); }
 
-    button.primary {
-      background: #555;
-    }
-
-    button + button {
-      margin-top: 10px;
-    }
-
-    /* 질문 화면 */
-    #questionScreen {
-      display: none;
-    }
+    /* 질문 */
+    #questionScreen { display: none; }
+    .progress { font-size: 12px; opacity: 0.7; margin-bottom: 8px; }
 
     .option {
-      margin-top: 12px;
+      margin-top: 10px;
       padding: 14px;
-      border-radius: 12px;
-      background: #1a1a1a;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.08);
       cursor: pointer;
+      user-select: none;
     }
+    .option:hover { background: rgba(255,255,255,0.12); }
 
-    .option:hover {
-      background: #2a2a2a;
+    /* 상단 타이틀(작게) */
+    .titlebar {
+      position: absolute;
+      left: 14px;
+      top: env(safe-area-inset-top);
+      padding-top: 10px;
+      font-size: 14px;
+      opacity: 0.9;
+      text-shadow: 0 4px 18px rgba(0,0,0,0.8);
     }
+    .titlebar small { display:block; opacity:0.7; margin-top:4px; }
 
-    .progress {
-      font-size: 13px;
-      opacity: 0.7;
-      margin-bottom: 10px;
-    }
   </style>
 </head>
 
 <body>
-  <div class="bg"></div>
+  <div class="stage">
+    <div class="bg"></div>
 
-  <!-- 시작 설정 -->
-  <div class="card" id="startScreen">
-    <h1>🎸 시작 설정</h1>
-    <p>닉네임 / 나이 / 성별을 정하면 게임이 시작됩니다.</p>
+    <!-- ✅ 캐릭터 레이어 -->
+    <div class="character">
+      <!-- 아래 4개 중 "없는 파일"은 지워도 됨 -->
+      <img class="layer body"     src="./assets/character/rockstar_body.png"   alt="rockstar body" />
+      <img class="layer guitar"   src="./assets/character/rockstar_guitar.png" alt="guitar" />
+      <img class="layer fret-arm" src="./assets/character/rockstar_fret_arm.png" alt="fret arm" />
+      <img class="layer pick-arm" src="./assets/character/rockstar_pick_arm.png" alt="pick arm" />
+    </div>
 
-    <label>닉네임</label>
-    <input id="nickname" placeholder="예: 가네트" />
+    <div class="titlebar">
+      🎸 오늘의선택 · 락스타를 꿈꾸는 소녀
+      <small>프로토타입 · 선택이 누적되는 게임</small>
+    </div>
 
-    <label>나이</label>
-    <input id="age" type="number" placeholder="예: 34" />
+    <!-- UI -->
+    <div class="ui">
+      <!-- 시작 -->
+      <div class="card" id="startScreen">
+        <h1>시작 설정</h1>
+        <p>닉네임 / 나이 / 성별을 정하면 시작됩니다.</p>
 
-    <label>성별</label>
-    <select id="gender">
-      <option value="여">여</option>
-      <option value="남">남</option>
-      <option value="기타">기타</option>
-    </select>
+        <label>닉네임</label>
+        <input id="nickname" placeholder="예: 가네트" />
 
-    <button class="primary" onclick="startGame()">게임 시작</button>
-    <button onclick="resetGame()">전체 삭제</button>
+        <div class="row">
+          <div>
+            <label>나이</label>
+            <input id="age" type="number" placeholder="예: 34" />
+          </div>
+          <div>
+            <label>성별</label>
+            <select id="gender">
+              <option value="여">여</option>
+              <option value="남">남</option>
+              <option value="기타">기타</option>
+            </select>
+          </div>
+        </div>
 
-    <p style="font-size:12px;opacity:0.6;margin-top:12px;">
-      ※ 저장은 브라우저(LocalStorage)에 됩니다.
-    </p>
-  </div>
+        <button class="primary" onclick="startGame()">게임 시작</button>
+        <button onclick="resetGame()">전체 삭제</button>
 
-  <!-- 질문 화면 -->
-  <div class="card" id="questionScreen">
-    <div class="progress" id="progressText"></div>
-    <h1 id="questionText"></h1>
+        <p style="font-size:12px;opacity:0.65;margin-top:10px;">
+          저장: 브라우저(LocalStorage)
+        </p>
+      </div>
 
-    <div id="options"></div>
+      <!-- 질문 -->
+      <div class="card" id="questionScreen">
+        <div class="progress" id="progressText"></div>
+        <h1 id="questionText"></h1>
+        <div id="options"></div>
+
+        <button style="margin-top:14px" onclick="resetGame()">진행 초기화</button>
+      </div>
+    </div>
   </div>
 
   <script>
+    // ✅ 여기만 15개로 늘리면 됨 (일단 샘플 3개)
     const questions = [
-      {
-        q: "기타 톤이 마음에 안 들 때, 첫 점검은?",
-        a: ["볼륨/톤/픽업 포지션", "앰프 EQ를 극단으로", "케이블·노이즈부터"]
-      },
-      {
-        q: "첫 합주에서 가장 중요한 태도는?",
-        a: ["리듬 유지", "존재감", "팀워크"]
-      },
-      {
-        q: "무대 전 가장 먼저 하는 일은?",
-        a: ["튜닝", "스트레칭", "셋리스트 확인"]
-      }
+      { q: "기타 톤이 마음에 안 들 때, 첫 점검은?", a: ["볼륨/톤/픽업 포지션", "앰프 EQ를 극단으로", "케이블·노이즈·접촉부터"] },
+      { q: "첫 합주에서 가장 중요한 태도는?", a: ["리듬 유지가 우선", "존재감으로 끌고 간다", "팀워크로 빈틈을 메운다"] },
+      { q: "무대 전 가장 먼저 하는 일은?", a: ["튜닝", "스트레칭", "셋리스트/큐시트 확인"] }
     ];
 
     let current = 0;
+
+    // 저장된 플레이어 있으면 바로 질문 화면으로 진입(원하면 끄면 됨)
+    (function boot() {
+      const saved = localStorage.getItem("player");
+      if (saved) {
+        document.getElementById("startScreen").style.display = "none";
+        document.getElementById("questionScreen").style.display = "block";
+        current = 0;
+        renderQuestion();
+      }
+    })();
 
     function startGame() {
       const nickname = document.getElementById("nickname").value.trim();
@@ -184,14 +288,13 @@
 
     function renderQuestion() {
       const q = questions[current];
-      document.getElementById("progressText").innerText =
-        `Q ${current + 1} / ${questions.length}`;
+      document.getElementById("progressText").innerText = `Q ${current + 1} / ${questions.length}`;
       document.getElementById("questionText").innerText = q.q;
 
       const optBox = document.getElementById("options");
       optBox.innerHTML = "";
 
-      q.a.forEach(text => {
+      q.a.forEach((text) => {
         const div = document.createElement("div");
         div.className = "option";
         div.innerText = text;
