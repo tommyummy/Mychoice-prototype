@@ -1,182 +1,218 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
-  <head>
-    <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, viewport-fit=cover"
-    />
-    <title>오늘의 선택 · 락스타를 꿈꾸는 소녀</title>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>오늘의 선택 · 락스타를 꿈꾸는 소녀</title>
 
-    <link rel="stylesheet" href="./styles.css" />
-  </head>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Noto Sans KR", sans-serif;
+    }
 
-  <body>
-    <!-- 풀스크린 배경 -->
-    <div id="bg" aria-hidden="true"></div>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #000;
+      color: #fff;
+    }
 
-    <!-- 앱 전체 -->
-    <div id="app">
-      <!-- 상단 바 -->
-      <header class="topbar">
-        <div class="brand">
-          <span class="emoji" aria-hidden="true">🎸</span>
-          <div class="title-wrap">
-            <div class="title">오늘의 선택 · 락스타를 꿈꾸는 소녀</div>
-            <div class="subtitle">프로토타입 · 선택이 누적되는 게임</div>
-          </div>
-        </div>
+    /* 배경 */
+    .bg {
+      position: fixed;
+      inset: 0;
+      background: url("./assets/character/bg/stage_vertical.png") center / cover no-repeat;
+      filter: brightness(0.7);
+      z-index: -1;
+    }
 
-        <div class="profile-pill" id="profilePill">
-          <span class="pill-dot" aria-hidden="true"></span>
-          <span class="pill-text" id="pillText">미설정</span>
-        </div>
-      </header>
+    /* 공통 카드 */
+    .card {
+      max-width: 420px;
+      margin: 80px auto 0;
+      padding: 24px;
+      background: rgba(20, 20, 20, 0.9);
+      border-radius: 16px;
+      box-shadow: 0 0 40px rgba(0,0,0,0.6);
+    }
 
-      <!-- 메인 -->
-      <main class="main">
-        <!-- 시작 설정(초기 화면) -->
-        <section class="panel" id="setupPanel">
-          <h2 class="panel-title">시작 설정</h2>
-          <p class="panel-desc">닉네임/나이대/성별을 정하면 게임이 시작됩니다.</p>
+    h1 {
+      font-size: 20px;
+      margin-bottom: 12px;
+    }
 
-          <div class="form">
-            <label class="field">
-              <span class="label">닉네임</span>
-              <input
-                id="nicknameInput"
-                type="text"
-                placeholder="예: 가네트"
-                maxlength="12"
-                autocomplete="off"
-              />
-            </label>
+    label {
+      display: block;
+      margin-top: 16px;
+      font-size: 14px;
+      opacity: 0.85;
+    }
 
-            <label class="field">
-              <span class="label">나이대</span>
-              <select id="ageSelect">
-                <option value="">선택</option>
-                <option value="10대">10대</option>
-                <option value="20대">20대</option>
-                <option value="30대">30대</option>
-                <option value="40대">40대</option>
-                <option value="50대+">50대+</option>
-              </select>
-            </label>
+    input, select {
+      width: 100%;
+      margin-top: 6px;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      background: #111;
+      color: #fff;
+      font-size: 16px;
+    }
 
-            <label class="field">
-              <span class="label">성별</span>
-              <select id="genderSelect">
-                <option value="여">여</option>
-                <option value="남">남</option>
-                <option value="기타">기타</option>
-              </select>
-            </label>
+    button {
+      width: 100%;
+      margin-top: 20px;
+      padding: 14px;
+      border-radius: 12px;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      background: #333;
+      color: #fff;
+    }
 
-            <div class="actions">
-              <button class="btn primary" id="startBtn" type="button">
-                게임 시작
-              </button>
-              <button class="btn ghost" id="wipeBtn" type="button">
-                전체 삭제
-              </button>
-            </div>
+    button.primary {
+      background: #555;
+    }
 
-            <p class="hint">
-              ※ 저장은 브라우저(LocalStorage)에 됩니다. 같은 기기/브라우저에서
-              유지됩니다.
-            </p>
-          </div>
-        </section>
+    button + button {
+      margin-top: 10px;
+    }
 
-        <!-- 게임 화면 -->
-        <section class="panel hidden" id="gamePanel">
-          <!-- 상단 캐릭터/대화 영역 -->
-          <div class="scene">
-            <div class="char-card">
-              <div class="char-frame">
-                <!-- 캐릭터 레이어 합성 -->
-                <div class="char-layer body" id="charBody"></div>
-                <div class="char-layer guitar" id="charGuitar"></div>
-                <div class="char-layer fret" id="charFret"></div>
+    /* 질문 화면 */
+    #questionScreen {
+      display: none;
+    }
 
-                <!-- 피킹 팔(애니메이션) -->
-                <div class="char-layer pick" id="charPick"></div>
-              </div>
+    .option {
+      margin-top: 12px;
+      padding: 14px;
+      border-radius: 12px;
+      background: #1a1a1a;
+      cursor: pointer;
+    }
 
-              <div class="char-name">
-                <span class="label">락스타를 꿈꾸는 소녀</span>
-                <span class="live-dot" aria-hidden="true"></span>
-              </div>
-            </div>
+    .option:hover {
+      background: #2a2a2a;
+    }
 
-            <div class="dialog-card">
-              <div class="dialog-title">매니저(머릿속)</div>
-              <div class="dialog-text" id="dialogText">
-                “선택은 쌓이고, 쌓인 선택은 너를 만든다.”
-              </div>
-            </div>
-          </div>
+    .progress {
+      font-size: 13px;
+      opacity: 0.7;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
 
-          <!-- 진행바 -->
-          <div class="progress">
-            <div class="progress-left">
-              <span id="qCounter">Q 1/15</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill" id="progressFill"></div>
-            </div>
-            <div class="progress-right" id="progressHint">
-              선택하면 다음 질문으로 넘어갑니다.
-            </div>
-          </div>
+<body>
+  <div class="bg"></div>
 
-          <!-- 질문 카드 -->
-          <div class="question-card">
-            <h2 class="q-title" id="qTitle">질문</h2>
-            <p class="q-sub" id="qSub">설명</p>
+  <!-- 시작 설정 -->
+  <div class="card" id="startScreen">
+    <h1>🎸 시작 설정</h1>
+    <p>닉네임 / 나이 / 성별을 정하면 게임이 시작됩니다.</p>
 
-            <div class="choices" id="choices"></div>
+    <label>닉네임</label>
+    <input id="nickname" placeholder="예: 가네트" />
 
-            <div class="bottom-actions">
-              <button class="btn ghost" id="historyBtn" type="button">
-                내 기록
-              </button>
-              <button class="btn ghost" id="resetRunBtn" type="button">
-                진행 초기화
-              </button>
-              <button class="btn danger" id="wipeAllBtn" type="button">
-                전부 삭제
-              </button>
-            </div>
-          </div>
+    <label>나이</label>
+    <input id="age" type="number" placeholder="예: 34" />
 
-          <!-- 기록 모달 -->
-          <div class="modal hidden" id="historyModal" role="dialog" aria-modal="true">
-            <div class="modal-backdrop" id="modalBackdrop"></div>
-            <div class="modal-card">
-              <div class="modal-header">
-                <div class="modal-title">내 기록</div>
-                <button class="icon-btn" id="closeModalBtn" type="button" aria-label="닫기">
-                  ✕
-                </button>
-              </div>
-              <div class="modal-body" id="historyList"></div>
-              <div class="modal-footer">
-                <button class="btn ghost" id="closeModalBtn2" type="button">
-                  닫기
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
-      </main>
+    <label>성별</label>
+    <select id="gender">
+      <option value="여">여</option>
+      <option value="남">남</option>
+      <option value="기타">기타</option>
+    </select>
 
-      <!-- 하단 안전영역 패딩 -->
-      <div class="safe-bottom" aria-hidden="true"></div>
-    </div>
+    <button class="primary" onclick="startGame()">게임 시작</button>
+    <button onclick="resetGame()">전체 삭제</button>
 
-    <!-- 스크립트는 반드시 마지막 -->
-    <script src="./script.js"></script>
-  </body>
+    <p style="font-size:12px;opacity:0.6;margin-top:12px;">
+      ※ 저장은 브라우저(LocalStorage)에 됩니다.
+    </p>
+  </div>
+
+  <!-- 질문 화면 -->
+  <div class="card" id="questionScreen">
+    <div class="progress" id="progressText"></div>
+    <h1 id="questionText"></h1>
+
+    <div id="options"></div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        q: "기타 톤이 마음에 안 들 때, 첫 점검은?",
+        a: ["볼륨/톤/픽업 포지션", "앰프 EQ를 극단으로", "케이블·노이즈부터"]
+      },
+      {
+        q: "첫 합주에서 가장 중요한 태도는?",
+        a: ["리듬 유지", "존재감", "팀워크"]
+      },
+      {
+        q: "무대 전 가장 먼저 하는 일은?",
+        a: ["튜닝", "스트레칭", "셋리스트 확인"]
+      }
+    ];
+
+    let current = 0;
+
+    function startGame() {
+      const nickname = document.getElementById("nickname").value.trim();
+      const age = document.getElementById("age").value.trim();
+
+      if (!nickname || !age) {
+        alert("닉네임과 나이를 입력하세요.");
+        return;
+      }
+
+      localStorage.setItem("player", JSON.stringify({
+        nickname,
+        age,
+        gender: document.getElementById("gender").value
+      }));
+
+      document.getElementById("startScreen").style.display = "none";
+      document.getElementById("questionScreen").style.display = "block";
+
+      current = 0;
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      const q = questions[current];
+      document.getElementById("progressText").innerText =
+        `Q ${current + 1} / ${questions.length}`;
+      document.getElementById("questionText").innerText = q.q;
+
+      const optBox = document.getElementById("options");
+      optBox.innerHTML = "";
+
+      q.a.forEach(text => {
+        const div = document.createElement("div");
+        div.className = "option";
+        div.innerText = text;
+        div.onclick = nextQuestion;
+        optBox.appendChild(div);
+      });
+    }
+
+    function nextQuestion() {
+      current++;
+      if (current >= questions.length) {
+        alert("프로토타입 끝! (엔딩 없음)");
+        current = 0;
+      }
+      renderQuestion();
+    }
+
+    function resetGame() {
+      localStorage.clear();
+      location.reload();
+    }
+  </script>
+</body>
 </html>
