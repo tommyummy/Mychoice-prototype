@@ -1,136 +1,124 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>오늘의 선택 – 락스타를 꿈꾸는 소녀</title>
-
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      background: black;
-      overflow: hidden;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont;
-    }
-
-    /* 전체 게임 화면 */
-    #game {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-    }
-
-    /* 배경 */
-    #bg {
-      position: absolute;
-      inset: 0;
-      background: url("assets/bg/stage_vertical.png") center / cover no-repeat;
-      z-index: 0;
-    }
-
-    /* 캐릭터 레이어 */
-    #stage {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      justify-content: center;
-      align-items: flex-end;
-      pointer-events: none;
-    }
-
-    #character {
-      position: relative;
-      height: 80vh;
-      aspect-ratio: 9 / 16;
-    }
-
-    #character img {
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      user-select: none;
-    }
-
-    /* 개별 파츠 */
-    #body {
-      height: 100%;
-      z-index: 1;
-    }
-
-    #guitar {
-      height: 38%;
-      bottom: 30%;
-      z-index: 2;
-    }
-
-    #fret-arm {
-      height: 30%;
-      bottom: 36%;
-      left: 48%;
-      z-index: 3;
-    }
-
-    #pick-arm {
-      height: 26%;
-      bottom: 34%;
-      left: 56%;
-      z-index: 4;
-      transform-origin: 10% 50%;
-    }
-
-    /* 질문 영역 */
-    #ui {
-      position: absolute;
-      bottom: 0;
-      width: 100%;
-      padding: 16px;
-      background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
-      z-index: 10;
-    }
-
-    .question {
-      color: #fff;
-      font-size: 1.1rem;
-      margin-bottom: 12px;
-    }
-
-    .choice {
-      background: #1e1e1e;
-      color: #fff;
-      border-radius: 12px;
-      padding: 14px;
-      margin-bottom: 10px;
-    }
-  </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>오늘의선택 - 락스타를 꿈꾸는 소녀</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
-  <div id="game">
-    <div id="bg"></div>
+  <!-- 풀스크린 배경 -->
+  <div id="bg"></div>
 
-    <div id="stage">
-      <div id="character">
-        <img id="body" src="assets/character/rockstar_body.png" />
-        <img id="guitar" src="assets/character/rockstar_guitar.png" />
-        <img id="fret-arm" src="assets/character/rockstar_fret_arm.png" />
-        <img id="pick-arm" src="assets/character/rockstar_pick_arm.png" />
+  <!-- 상단바 -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">🎸</span>
+      <div class="title">
+        <div class="h1">오늘의선택 · 락스타를 꿈꾸는 소녀</div>
+        <div class="h2">프로토타입 · 선택이 누적되는 게임</div>
       </div>
     </div>
+    <div class="profile-pill" id="profilePill">-</div>
+  </header>
 
-    <div id="ui">
-      <div class="question">기타 톤이 마음에 안 들 때, 첫 점검은?</div>
-      <div class="choice">A. 볼륨 / 톤 / 픽업 포지션</div>
-      <div class="choice">B. 앰프 EQ를 극단으로</div>
-      <div class="choice">C. 케이블 / 노이즈 / 접촉</div>
+  <!-- 시작(프로필) 화면 -->
+  <section class="screen screen-on" id="screenSetup" aria-hidden="false">
+    <div class="panel">
+      <div class="panelTitle">시작 설정</div>
+      <div class="panelDesc">닉네임/나이/성별을 정하면 게임이 시작됩니다.</div>
+
+      <div class="formGrid">
+        <label class="field">
+          <span>닉네임</span>
+          <input id="inpNick" type="text" placeholder="예: 가네트" maxlength="12" />
+        </label>
+
+        <label class="field">
+          <span>나이</span>
+          <input id="inpAge" type="number" min="1" max="99" placeholder="예: 34" />
+        </label>
+
+        <label class="field">
+          <span>성별</span>
+          <select id="inpGender">
+            <option value="여">여</option>
+            <option value="남">남</option>
+            <option value="기타">기타</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="btnRow">
+        <button class="btn" id="btnStart">게임 시작</button>
+        <button class="btn btnGhost" id="btnResetAll">전체 삭제</button>
+      </div>
+
+      <div class="hint">
+        ※ 저장은 브라우저(LocalStorage)에 됩니다. 같은 기기/브라우저에서 유지됩니다.
+      </div>
+    </div>
+  </section>
+
+  <!-- 게임 화면 -->
+  <main class="game" id="screenGame" aria-hidden="true">
+    <!-- 캐릭터 무대(레이어 합성) -->
+    <section class="stage">
+      <div class="stageFrame">
+        <div class="charWrap" id="charWrap">
+          <img class="layer body" id="layerBody" alt="" />
+          <img class="layer guitar" id="layerGuitar" alt="" />
+          <img class="layer fret" id="layerFret" alt="" />
+          <img class="layer pick" id="layerPick" alt="" />
+        </div>
+
+        <div class="dialog">
+          <div class="speaker">매니저(머릿속)</div>
+          <div class="line" id="managerLine">"오늘도 기타 잡을 거지?"</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 퀴즈 패널 -->
+    <section class="quiz">
+      <div class="quizTop">
+        <div class="progress">
+          <div class="qno" id="qNo">Q 1/15</div>
+          <div class="bar"><div class="barFill" id="barFill"></div></div>
+        </div>
+
+        <div class="rightHint">선택하면 다음 질문으로 넘어갑니다.</div>
+      </div>
+
+      <div class="card">
+        <div class="qTitle" id="qTitle">-</div>
+        <div class="qDesc" id="qDesc">-</div>
+
+        <div class="choices" id="choices"></div>
+
+        <div class="footerBtns">
+          <button class="btn btnGhost" id="btnLog">내 기록</button>
+          <button class="btn btnGhost" id="btnRestart">진행 초기화</button>
+          <button class="btn btnGhost" id="btnWipe">전부 삭제</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 기록 모달 -->
+  <div class="modal hidden" id="modalLog" role="dialog" aria-modal="true">
+    <div class="modalPanel">
+      <div class="modalHead">
+        <div class="modalTitle">내 기록</div>
+        <button class="x" id="btnCloseLog">✕</button>
+      </div>
+      <div class="modalBody" id="logBody"></div>
+      <div class="modalFoot">
+        <button class="btn" id="btnCloseLog2">닫기</button>
+      </div>
     </div>
   </div>
 
-  <!-- script.js는 아직 비워둬도 OK -->
   <script src="script.js"></script>
 </body>
 </html>
