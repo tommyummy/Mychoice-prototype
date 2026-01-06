@@ -4,121 +4,128 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>오늘의선택 - 락스타를 꿈꾸는 소녀</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <!-- 풀스크린 배경 -->
-  <div id="bg"></div>
+  <main id="app" class="app" aria-label="게임 화면">
+    <!-- 배경 -->
+    <div class="bg" aria-hidden="true"></div>
 
-  <!-- 상단바 -->
-  <header class="topbar">
-    <div class="brand">
-      <span class="logo">🎸</span>
-      <div class="title">
-        <div class="h1">오늘의선택 · 락스타를 꿈꾸는 소녀</div>
-        <div class="h2">프로토타입 · 선택이 누적되는 게임</div>
+    <!-- 상단 바 -->
+    <header class="topbar">
+      <div class="brand">
+        <span class="icon">🎸</span>
+        <div class="titles">
+          <div class="title">오늘의선택 · 락스타를 꿈꾸는 소녀</div>
+          <div class="subtitle">선택이 누적되는 게임 (프로토타입)</div>
+        </div>
       </div>
-    </div>
-    <div class="profile-pill" id="profilePill">-</div>
-  </header>
 
-  <!-- 시작(프로필) 화면 -->
-  <section class="screen screen-on" id="screenSetup" aria-hidden="false">
-    <div class="panel">
-      <div class="panelTitle">시작 설정</div>
-      <div class="panelDesc">닉네임/나이/성별을 정하면 게임이 시작됩니다.</div>
+      <div class="profilepill" id="profilePill" title="프로필"></div>
+    </header>
 
-      <div class="formGrid">
-        <label class="field">
+    <!-- 시작(프로필 입력) 화면 -->
+    <section class="panel start" id="startPanel">
+      <h1 class="h1">프로필 설정</h1>
+      <p class="p">닉네임/나이/성별을 먼저 선택하면 게임이 시작된다.</p>
+
+      <div class="form">
+        <label class="label">
           <span>닉네임</span>
-          <input id="inpNick" type="text" placeholder="예: 가네트" maxlength="12" />
+          <input id="nickInput" class="input" maxlength="12" placeholder="예: 가네트" />
         </label>
 
-        <label class="field">
-          <span>나이</span>
-          <input id="inpAge" type="number" min="1" max="99" placeholder="예: 34" />
-        </label>
-
-        <label class="field">
-          <span>성별</span>
-          <select id="inpGender">
-            <option value="여">여</option>
-            <option value="남">남</option>
-            <option value="기타">기타</option>
+        <label class="label">
+          <span>나이대</span>
+          <select id="ageSelect" class="input">
+            <option value="10대">10대</option>
+            <option value="20대" selected>20대</option>
+            <option value="30대">30대</option>
+            <option value="40대">40대</option>
+            <option value="50대+">50대+</option>
           </select>
         </label>
-      </div>
 
-      <div class="btnRow">
-        <button class="btn" id="btnStart">게임 시작</button>
-        <button class="btn btnGhost" id="btnResetAll">전체 삭제</button>
-      </div>
+        <label class="label">
+          <span>성별</span>
+          <select id="genderSelect" class="input">
+            <option value="여" selected>여</option>
+            <option value="남">남</option>
+            <option value="기타">기타</option>
+            <option value="비공개">비공개</option>
+          </select>
+        </label>
 
-      <div class="hint">
-        ※ 저장은 브라우저(LocalStorage)에 됩니다. 같은 기기/브라우저에서 유지됩니다.
-      </div>
-    </div>
-  </section>
+        <button id="startBtn" class="btn primary">시작하기</button>
 
-  <!-- 게임 화면 -->
-  <main class="game" id="screenGame" aria-hidden="true">
-    <!-- 캐릭터 무대(레이어 합성) -->
-    <section class="stage">
-      <div class="stageFrame">
-        <div class="charWrap" id="charWrap">
-          <img class="layer body" id="layerBody" alt="" />
-          <img class="layer guitar" id="layerGuitar" alt="" />
-          <img class="layer fret" id="layerFret" alt="" />
-          <img class="layer pick" id="layerPick" alt="" />
+        <div class="row">
+          <button id="resumeBtn" class="btn ghost">이어서 하기</button>
+          <button id="wipeAllBtn" class="btn danger">전부 삭제</button>
         </div>
 
-        <div class="dialog">
-          <div class="speaker">매니저(머릿속)</div>
-          <div class="line" id="managerLine">"오늘도 기타 잡을 거지?"</div>
-        </div>
+        <p class="hint">
+          * “이어서 하기”는 기기에 저장된 기록(localStorage)을 불러온다.
+        </p>
       </div>
     </section>
 
-    <!-- 퀴즈 패널 -->
-    <section class="quiz">
-      <div class="quizTop">
-        <div class="progress">
-          <div class="qno" id="qNo">Q 1/15</div>
-          <div class="bar"><div class="barFill" id="barFill"></div></div>
+    <!-- 게임 화면 -->
+    <section class="panel game hidden" id="gamePanel">
+      <!-- 상단 캐릭터/대사 영역 -->
+      <div class="stage">
+        <div class="character" id="character">
+          <!-- 몸통 -->
+          <img class="layer body" id="layerBody" alt="캐릭터 몸통" />
+          <!-- 기타 -->
+          <img class="layer guitar" id="layerGuitar" alt="기타" />
+          <!-- 프렛(왼손) -->
+          <img class="layer fret" id="layerFret" alt="프렛 손" />
+          <!-- 피킹(오른손) -->
+          <img class="layer pick" id="layerPick" alt="피킹 손" />
         </div>
 
-        <div class="rightHint">선택하면 다음 질문으로 넘어갑니다.</div>
+        <div class="speech">
+          <div class="speaker">매니저(머릿속)</div>
+          <div class="line" id="speechLine">“오늘도 기타 잡을 거지?”</div>
+        </div>
       </div>
 
-      <div class="card">
-        <div class="qTitle" id="qTitle">-</div>
-        <div class="qDesc" id="qDesc">-</div>
+      <!-- 진행/질문 -->
+      <div class="qwrap">
+        <div class="qmeta">
+          <div class="qcount" id="qCount">Q 1/15</div>
+          <div class="progress">
+            <div class="bar" id="progressBar"></div>
+          </div>
+          <div class="qhint">선택하면 다음 질문으로 넘어간다.</div>
+        </div>
+
+        <h2 class="qtitle" id="qTitle">질문</h2>
+        <p class="qdesc" id="qDesc">설명</p>
 
         <div class="choices" id="choices"></div>
 
-        <div class="footerBtns">
-          <button class="btn btnGhost" id="btnLog">내 기록</button>
-          <button class="btn btnGhost" id="btnRestart">진행 초기화</button>
-          <button class="btn btnGhost" id="btnWipe">전부 삭제</button>
+        <div class="footerRow">
+          <button id="logBtn" class="btn ghost">내 기록</button>
+          <button id="resetRunBtn" class="btn ghost">진행 초기화</button>
+          <button id="backToStartBtn" class="btn ghost">프로필로</button>
+        </div>
+
+        <div class="log hidden" id="logPanel">
+          <div class="logHead">
+            <div class="logTitle">선택 기록</div>
+            <button id="closeLogBtn" class="btn ghost small">닫기</button>
+          </div>
+          <div class="logBody" id="logBody"></div>
         </div>
       </div>
     </section>
+
+    <!-- 로딩/에러 -->
+    <div class="toast hidden" id="toast"></div>
+
   </main>
 
-  <!-- 기록 모달 -->
-  <div class="modal hidden" id="modalLog" role="dialog" aria-modal="true">
-    <div class="modalPanel">
-      <div class="modalHead">
-        <div class="modalTitle">내 기록</div>
-        <button class="x" id="btnCloseLog">✕</button>
-      </div>
-      <div class="modalBody" id="logBody"></div>
-      <div class="modalFoot">
-        <button class="btn" id="btnCloseLog2">닫기</button>
-      </div>
-    </div>
-  </div>
-
-  <script src="script.js"></script>
+  <script src="./script.js"></script>
 </body>
 </html>
