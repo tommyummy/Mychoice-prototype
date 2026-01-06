@@ -1,186 +1,136 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>오늘의 선택 - 락스타를 꿈꾸는 소녀</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>오늘의 선택 – 락스타를 꿈꾸는 소녀</title>
 
   <style>
-    /* ===== RESET ===== */
     * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
     }
 
-    html, body {
-      width: 100%;
-      height: 100%;
-      background: #000;
-      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
-      color: #fff;
+    body {
+      background: black;
       overflow: hidden;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont;
     }
 
-    /* ===== GAME SCREEN ===== */
+    /* 전체 게임 화면 */
     #game {
       position: relative;
       width: 100vw;
       height: 100vh;
-      overflow: hidden;
     }
 
-    /* ===== BACKGROUND ===== */
+    /* 배경 */
     #bg {
       position: absolute;
       inset: 0;
-      background: url("assets/bg/stage_vertical.png") center top / cover no-repeat;
+      background: url("assets/bg/stage_vertical.png") center / cover no-repeat;
       z-index: 0;
-      filter: brightness(0.85);
     }
 
-    /* ===== CHARACTER LAYER ===== */
-    #character {
+    /* 캐릭터 레이어 */
+    #stage {
       position: absolute;
       inset: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
       pointer-events: none;
+    }
+
+    #character {
+      position: relative;
+      height: 80vh;
+      aspect-ratio: 9 / 16;
+    }
+
+    #character img {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      user-select: none;
+    }
+
+    /* 개별 파츠 */
+    #body {
+      height: 100%;
       z-index: 1;
     }
 
-    #body {
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      height: 78vh;
-    }
-
     #guitar {
-      position: absolute;
-      bottom: 22vh;
-      left: 50%;
-      transform: translateX(-50%);
-      height: 32vh;
-    }
-
-    #arm-pick {
-      position: absolute;
-      bottom: 28vh;
-      left: 50%;
-      height: 22vh;
-      transform-origin: 20% 50%;
-      animation: strum 1.2s ease-in-out infinite;
-    }
-
-    @keyframes strum {
-      0% { transform: translateX(-50%) rotate(5deg); }
-      50% { transform: translateX(-50%) rotate(-12deg); }
-      100% { transform: translateX(-50%) rotate(5deg); }
-    }
-
-    /* ===== UI ===== */
-    #ui {
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      padding: 16px 16px 24px;
-      background: linear-gradient(
-        to top,
-        rgba(0,0,0,0.9),
-        rgba(0,0,0,0.6),
-        rgba(0,0,0,0)
-      );
+      height: 38%;
+      bottom: 30%;
       z-index: 2;
     }
 
-    #progress {
-      font-size: 13px;
-      opacity: 0.7;
-      margin-bottom: 6px;
+    #fret-arm {
+      height: 30%;
+      bottom: 36%;
+      left: 48%;
+      z-index: 3;
     }
 
-    #question {
-      font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 14px;
-      line-height: 1.4;
+    #pick-arm {
+      height: 26%;
+      bottom: 34%;
+      left: 56%;
+      z-index: 4;
+      transform-origin: 10% 50%;
+    }
+
+    /* 질문 영역 */
+    #ui {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+      z-index: 10;
+    }
+
+    .question {
+      color: #fff;
+      font-size: 1.1rem;
+      margin-bottom: 12px;
     }
 
     .choice {
-      width: 100%;
+      background: #1e1e1e;
+      color: #fff;
+      border-radius: 12px;
       padding: 14px;
       margin-bottom: 10px;
-      border-radius: 12px;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.15);
-      color: #fff;
-      font-size: 15px;
-      text-align: left;
-    }
-
-    .choice:active {
-      background: rgba(255,255,255,0.18);
-    }
-
-    /* ===== HEADER ===== */
-    #header {
-      position: absolute;
-      top: env(safe-area-inset-top);
-      left: 0;
-      right: 0;
-      padding: 12px 16px;
-      z-index: 3;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
-    }
-
-    #title {
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    #profile {
-      font-size: 12px;
-      opacity: 0.75;
     }
   </style>
 </head>
 
 <body>
   <div id="game">
-
-    <!-- BACKGROUND -->
     <div id="bg"></div>
 
-    <!-- CHARACTER -->
-    <div id="character">
-      <img id="body" src="assets/character/rockstar_body.png" />
-      <img id="guitar" src="assets/character/rockstar_guitar.png" />
-      <img id="arm-pick" src="assets/character/rockstar_pick_arm.png" />
+    <div id="stage">
+      <div id="character">
+        <img id="body" src="assets/character/rockstar_body.png" />
+        <img id="guitar" src="assets/character/rockstar_guitar.png" />
+        <img id="fret-arm" src="assets/character/rockstar_fret_arm.png" />
+        <img id="pick-arm" src="assets/character/rockstar_pick_arm.png" />
+      </div>
     </div>
 
-    <!-- HEADER -->
-    <div id="header">
-      <div id="title">🎸 오늘의 선택 · 락스타를 꿈꾸는 소녀</div>
-      <div id="profile">닉네임 · 나이 · 성별</div>
-    </div>
-
-    <!-- UI -->
     <div id="ui">
-      <div id="progress">Q 1 / 15</div>
-      <div id="question">기타 톤이 마음에 안 들 때, 첫 점검은?</div>
-
-      <button class="choice">A. 볼륨/톤/픽업 포지션</button>
-      <button class="choice">B. 앰프 EQ를 극단으로</button>
-      <button class="choice">C. 케이블·노이즈부터 확인</button>
+      <div class="question">기타 톤이 마음에 안 들 때, 첫 점검은?</div>
+      <div class="choice">A. 볼륨 / 톤 / 픽업 포지션</div>
+      <div class="choice">B. 앰프 EQ를 극단으로</div>
+      <div class="choice">C. 케이블 / 노이즈 / 접촉</div>
     </div>
-
   </div>
 
-  <!-- SCRIPT -->
+  <!-- script.js는 아직 비워둬도 OK -->
   <script src="script.js"></script>
 </body>
 </html>
