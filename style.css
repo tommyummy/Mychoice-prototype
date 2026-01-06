@@ -1,116 +1,315 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+:root{
+  --glass: rgba(18,20,24,.72);
+  --glass2: rgba(18,20,24,.58);
+  --line: rgba(255,255,255,.10);
+  --text: rgba(255,255,255,.92);
+  --muted: rgba(255,255,255,.68);
+  --shadow: 0 18px 55px rgba(0,0,0,.45);
+  --radius: 18px;
 }
 
-html, body {
-  width: 100%;
-  height: 100%;
-  background: black;
-  overflow: hidden;
-  font-family: system-ui, -apple-system;
+*{ box-sizing:border-box; }
+html, body{
+  margin:0; padding:0;
+  width:100%; height:100%;
+  background:#000;
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  overflow-x:hidden;
 }
 
-/* 게임 화면 (9:16 고정) */
-#game {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-}
-
-/* 배경 */
-#bg {
-  position: absolute;
+/* ✅ 풀스크린 배경 */
+#bg{
+  position: fixed;
   inset: 0;
-  background: url("assets/bg/stage_vertical.png") center / cover no-repeat;
-  z-index: 0;
+  background-image: url("assets/character/bg/stage_vertical.png");
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  z-index: -2;
 }
 
-/* 캐릭터 기준 좌표 */
-#character {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: 420px;
-  height: 100%;
-  z-index: 1;
-}
-
-/* 공통 */
-#character img {
-  position: absolute;
-  pointer-events: none;
-}
-
-/* 몸통 */
-#body {
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  height: 80%;
-  z-index: 1;
-}
-
-/* 기타 */
-#guitar {
-  bottom: 32%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80%;
-  z-index: 2;
-}
-
-/* 프렛 손 */
-#arm-fret {
-  bottom: 38%;
-  left: 58%;
-  width: 45%;
-  transform-origin: 20% 50%;
-  z-index: 3;
-}
-
-/* 피킹 손 */
-#arm-pick {
-  bottom: 36%;
-  left: 40%;
-  width: 35%;
-  transform-origin: 70% 50%;
-  z-index: 4;
-  animation: picking 0.25s infinite alternate ease-in-out;
-}
-
-/* 피킹 애니메이션 */
-@keyframes picking {
-  from { transform: rotate(5deg); }
-  to   { transform: rotate(-8deg); }
-}
-
-/* UI */
-#ui {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  padding: 16px;
-  background: linear-gradient(to top, rgba(0,0,0,.85), transparent);
+/* 상단바 */
+.topbar{
+  position: sticky;
+  top: 0;
   z-index: 10;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding: 14px 14px;
+  padding-top: calc(14px + env(safe-area-inset-top));
+  background: linear-gradient(to bottom, rgba(0,0,0,.55), rgba(0,0,0,.15));
+  backdrop-filter: blur(8px);
 }
 
-#question {
-  color: white;
-  margin-bottom: 12px;
-  font-size: 16px;
+.brand{ display:flex; gap:10px; align-items:flex-start; }
+.logo{ font-size:18px; line-height:1; margin-top:2px; }
+.title .h1{ font-weight: 800; font-size: 15px; letter-spacing:-.2px; }
+.title .h2{ font-size: 12px; color: var(--muted); margin-top:2px; }
+
+.profile-pill{
+  font-size: 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(0,0,0,.35);
 }
 
-button {
-  width: 100%;
-  margin-bottom: 8px;
-  padding: 14px;
+/* 화면 전환 */
+.screen{
+  position: fixed;
+  inset: 0;
+  display:none;
+  place-items:center;
+  padding: 18px;
+  z-index: 30;
+}
+.screen-on{ display:grid; }
+
+.panel{
+  width: min(520px, 92vw);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--glass);
+  box-shadow: var(--shadow);
+  padding: 18px;
+  backdrop-filter: blur(10px);
+}
+.panelTitle{ font-size: 18px; font-weight: 900; }
+.panelDesc{ margin-top: 8px; color: var(--muted); font-size: 13px; }
+
+.formGrid{
+  display:grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: 14px;
+}
+.field span{ display:block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.field input, .field select{
+  width:100%;
+  padding: 12px 12px;
   border-radius: 12px;
-  border: none;
-  background: #1f1f1f;
-  color: white;
-  font-size: 15px;
+  border: 1px solid var(--line);
+  background: rgba(0,0,0,.35);
+  color: var(--text);
+  outline: none;
+}
+.btnRow{
+  display:flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+.btn{
+  flex:1;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.10);
+  color: var(--text);
+  font-weight: 800;
+}
+.btn:active{ transform: translateY(1px); }
+.btnGhost{
+  background: rgba(0,0,0,.25);
+  border: 1px solid var(--line);
+}
+.hint{
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* 게임 레이아웃 */
+.game{
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 10px 12px 22px;
+  padding-bottom: calc(22px + env(safe-area-inset-bottom));
+  display: grid;
+  gap: 12px;
+}
+
+/* 무대 */
+.stageFrame{
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--glass2);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow);
+  padding: 12px;
+  overflow:hidden;
+  position: relative;
+  min-height: 240px;
+}
+
+.charWrap{
+  position: relative;
+  width: 100%;
+  height: 210px;
+}
+
+/* ✅ 레이어 공통 */
+.layer{
+  position: absolute;
+  user-select: none;
+  pointer-events: none;
+  image-rendering: auto;
+}
+
+/* ✅ 기본 배치(대충 맞는 값) - 너는 여기만 미세조정하면 됨 */
+.layer.body{
+  height: 210px;
+  left: 10px;
+  bottom: 0;
+}
+.layer.guitar{
+  height: 160px;
+  left: 150px;
+  bottom: 10px;
+  transform-origin: 29% 50%;
+}
+.layer.fret{
+  height: 120px;
+  left: 220px;
+  bottom: 55px;
+}
+.layer.pick{
+  height: 120px;
+  left: 260px;
+  bottom: 40px;
+  transform-origin: 34% 48%;
+}
+
+/* ✅ 피킹 모션: class="strum"이 붙으면 동작 */
+.layer.pick.strum{
+  animation: strum 0.22s ease-in-out infinite alternate;
+}
+@keyframes strum{
+  from { transform: rotate(-10deg) translateY(0px); }
+  to   { transform: rotate(12deg) translateY(2px); }
+}
+
+/* 대사 */
+.dialog{
+  position:absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  display:flex;
+  flex-direction:column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(0,0,0,.35);
+  border: 1px solid var(--line);
+}
+.speaker{ font-size: 12px; color: var(--muted); font-weight: 800; }
+.line{ font-size: 14px; font-weight: 800; }
+
+/* 퀴즈 */
+.quizTop{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap: 10px;
+  padding: 0 2px;
+}
+.progress{ display:flex; flex-direction:column; gap: 8px; width: 52%; min-width: 180px; }
+.qno{ font-size: 12px; color: var(--muted); font-weight: 800; }
+.bar{
+  width:100%;
+  height: 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(0,0,0,.25);
+  overflow:hidden;
+}
+.barFill{
+  height: 100%;
+  width: 0%;
+  background: rgba(255,255,255,.30);
+}
+.rightHint{ font-size: 12px; color: var(--muted); }
+
+.card{
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--glass);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow);
+  padding: 16px;
+}
+
+.qTitle{ font-size: 18px; font-weight: 900; letter-spacing:-.2px; }
+.qDesc{ margin-top: 6px; color: var(--muted); font-size: 13px; }
+
+.choices{
+  display:flex;
+  flex-direction:column;
+  gap: 10px;
+  margin-top: 14px;
+}
+.choice{
+  text-align:left;
+  padding: 14px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: rgba(0,0,0,.25);
+  color: var(--text);
+  font-weight: 800;
+}
+.choice:active{ transform: translateY(1px); }
+
+.footerBtns{
+  display:flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+/* 모달 */
+.modal{
+  position: fixed;
+  inset: 0;
+  display:grid;
+  place-items:center;
+  padding: 18px;
+  background: rgba(0,0,0,.55);
+  z-index: 50;
+}
+.hidden{ display:none; }
+
+.modalPanel{
+  width: min(640px, 92vw);
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--glass);
+  box-shadow: var(--shadow);
+  overflow:hidden;
+}
+.modalHead{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+}
+.modalTitle{ font-weight: 900; }
+.x{
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 18px;
+}
+.modalBody{
+  padding: 12px 14px;
+  max-height: 55vh;
+  overflow:auto;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.modalFoot{
+  padding: 12px 14px;
+  border-top: 1px solid var(--line);
 }
