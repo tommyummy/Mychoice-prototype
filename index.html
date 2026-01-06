@@ -4,99 +4,40 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>오늘의선택 · 락스타를 꿈꾸는 소녀 (프로토타입)</title>
+
   <style>
     :root{
       --safe-top: env(safe-area-inset-top);
       --safe-bot: env(safe-area-inset-bottom);
-      --text: #f4f6ff;
-      --muted: rgba(244,246,255,0.74);
-      --muted2: rgba(244,246,255,0.55);
-      --border: rgba(255,255,255,0.14);
-      --panel: rgba(10,14,26,0.62);
-      --panel2: rgba(10,14,26,0.82);
-      --accent: rgba(255,60,95,0.90);
-      --shadow: rgba(0,0,0,0.55);
+      --bg: #0b0f1a;
+      --panel: rgba(255,255,255,0.06);
+      --panel2: rgba(0,0,0,0.35);
+      --border: rgba(255,255,255,0.12);
+      --text: #f0f2ff;
+      --muted: rgba(240,242,255,0.70);
+      --muted2: rgba(240,242,255,0.55);
+      --accent: rgba(255,60,95,0.85);
     }
 
     html, body { height:100%; }
     body{
       margin:0;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--bg);
       color: var(--text);
-      background:#05070f;
+      height: 100svh;
       overflow:hidden;
     }
 
-    /* ===== 풀스크린 게임 캔버스 ===== */
-    .game{
-      position:relative;
-      height:100svh;
-      width:100%;
-      overflow:hidden;
-      padding: calc(10px + var(--safe-top)) 12px calc(10px + var(--safe-bot));
+    .wrap{
+      max-width: 560px;
+      margin: 0 auto;
+      height: 100svh;
+      padding: calc(12px + var(--safe-top)) 12px calc(12px + var(--safe-bot));
       box-sizing:border-box;
     }
 
-    /* 배경 (파일 있으면 깔리고, 없어도 그라데이션으로 버팀) */
-    .bg{
-      position:absolute; inset:0;
-      background:
-        radial-gradient(1200px 800px at 70% 20%, rgba(255,60,95,0.18), transparent 55%),
-        radial-gradient(900px 700px at 20% 10%, rgba(120,180,255,0.14), transparent 60%),
-        linear-gradient(180deg, #070a15 0%, #05070f 55%, #04050c 100%);
-      z-index:0;
-    }
-    .bg::after{
-      content:"";
-      position:absolute; inset:0;
-      background: radial-gradient(100% 70% at 50% 25%, transparent 30%, rgba(0,0,0,0.55) 100%);
-    }
-
-    /* ===== 캐릭터 ===== */
-    .character{
-      position:absolute;
-      inset:0;
-      display:flex;
-      align-items:flex-end;
-      justify-content:center;
-      padding-bottom: 18svh; /* 하단 UI에 가리지 않게 */
-      z-index:1;
-      pointer-events:none;
-    }
-
-    .sprite{
-      width:min(92vw, 520px);
-      height:auto;
-      filter: drop-shadow(0 20px 55px rgba(0,0,0,0.55));
-      transform-origin: 50% 90%;
-      will-change: transform;
-      user-select:none;
-      -webkit-user-drag:none;
-    }
-
-    /* 상태 애니메이션 */
-    @keyframes idleBreath {
-      0%,100%{ transform: translateY(0) scale(1); }
-      50%{ transform: translateY(-6px) scale(1.01); }
-    }
-    @keyframes talkNod {
-      0%,100%{ transform: translateY(-2px) rotate(0deg) scale(1.01); }
-      25%{ transform: translateY(-7px) rotate(-1.2deg) scale(1.015); }
-      75%{ transform: translateY(-7px) rotate(1.2deg) scale(1.015); }
-    }
-    @keyframes reactPop {
-      0%{ transform: translateY(0) scale(1); }
-      35%{ transform: translateY(-12px) scale(1.06); }
-      100%{ transform: translateY(-2px) scale(1.01); }
-    }
-    .is-idle { animation: idleBreath 3.2s ease-in-out infinite; }
-    .is-talk { animation: talkNod 0.7s ease-in-out infinite; }
-    .is-react{ animation: reactPop 0.35s ease-out; }
-
-    /* ===== 상단 HUD ===== */
-    .hud{
-      position:relative;
-      z-index:3;
+    .topbar{
       display:flex;
       align-items:center;
       justify-content:space-between;
@@ -104,134 +45,241 @@
       margin-bottom:10px;
     }
     .brand{
+      font-weight: 900;
+      letter-spacing: 0.2px;
       display:flex; align-items:center; gap:8px;
-      font-weight:900;
-      letter-spacing:0.2px;
-      text-shadow: 0 10px 25px rgba(0,0,0,0.45);
+      font-size: 16px;
     }
     .pill{
       font-size:12px;
-      padding:7px 10px;
+      padding:6px 10px;
       border:1px solid var(--border);
-      border-radius:999px;
-      background: rgba(255,255,255,0.06);
+      border-radius: 999px;
       color: var(--muted);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      white-space:nowrap;
+      background: rgba(255,255,255,0.03);
+      white-space: nowrap;
     }
-    .progressWrap{
-      display:flex; align-items:center; gap:10px;
-      font-size:12px; color: var(--muted);
+
+    .stage{
+      height: calc(100svh - (12px + var(--safe-top) + 12px + var(--safe-bot) + 34px));
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02));
+      display:flex;
+      flex-direction: column;
+    }
+
+    /* ===== 캐릭터(풀사이즈 느낌) 영역 ===== */
+    .hero{
+      position: relative;
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(0,0,0,0.18);
+    }
+
+    .heroCard{
+      border:1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.22);
+      border-radius: 16px;
+      padding: 12px;
+      display:grid;
+      gap: 10px;
+    }
+
+    .heroTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+
+    .meta .name{
+      font-weight: 950;
+      font-size: 16px;
+    }
+    .meta .role{
+      font-size: 12px;
+      color: var(--muted);
+      margin-top:4px;
+    }
+    .accent-dot{
+      width:10px; height:10px; border-radius:999px;
+      background: var(--accent);
+      box-shadow: 0 0 18px rgba(255,60,95,0.55);
+      display:inline-block;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    /* ===== 레이어 캐릭터 스테이지 ===== */
+    .characterStage{
+      position: relative;
+      width: 100%;
+      aspect-ratio: 3 / 4; /* 세로 풀사이즈 느낌 */
+      border-radius: 14px;
+      overflow:hidden;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+
+    .character{
+      position:absolute;
+      inset:0;
+      display:block;
+    }
+
+    .layer{
+      position:absolute;
+      left:0; top:0;
+      width:100%;
+      height:100%;
+      object-fit: contain;
+      pointer-events:none;
+      user-select:none;
+      -webkit-user-drag:none;
+      image-rendering: auto;
+    }
+
+    /* 숨쉬기(전체) */
+    @keyframes idleBreath {
+      0%,100% { transform: translateY(0px) scale(1); }
+      50%     { transform: translateY(-2px) scale(1.01); }
+    }
+    .character.is-idle{
+      animation: idleBreath 2.8s ease-in-out infinite;
+      transform-origin: 50% 85%;
+    }
+
+    /* ===== 팔 애니메이션 ===== */
+    /* 여기 2개가 제일 중요: 이미지에 맞게 숫자만 조절하면 됨 */
+    .fret{
+      transform-origin: 22% 32%; /* 왼팔 어깨(대충) */
+    }
+    .pick{
+      transform-origin: 30% 34%; /* 오른팔 어깨(대충) */
+    }
+
+    @keyframes fretMove {
+      0%,100% { transform: rotate(0deg) translateX(0px); }
+      50%     { transform: rotate(1.5deg) translateX(1px); }
+    }
+    .fret.playing{
+      animation: fretMove 0.55s ease-in-out infinite;
+    }
+
+    @keyframes strum {
+      0%   { transform: rotate(10deg) translateY(0); }
+      50%  { transform: rotate(-8deg) translateY(6px); }
+      100% { transform: rotate(10deg) translateY(0); }
+    }
+    .pick.playing{
+      animation: strum 0.18s ease-in-out infinite;
+    }
+
+    /* 선택 눌렀을 때 “강하게 한 번” */
+    @keyframes hitOnce {
+      0%   { transform: rotate(12deg) translateY(0) scale(1); }
+      55%  { transform: rotate(-12deg) translateY(9px) scale(1.01); }
+      100% { transform: rotate(10deg) translateY(0) scale(1); }
+    }
+    .pick.hit{
+      animation: hitOnce 0.28s ease-out 1;
+    }
+
+    /* ===== 대화/선택 ===== */
+    .dialogue{
+      flex: 1;
+      display:flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 12px;
+      background: var(--panel2);
+      overflow:hidden;
+    }
+
+    .hud{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      font-size:12px;
+      color: var(--muted);
+    }
+    .progress{
+      display:flex;
+      align-items:center;
+      gap: 8px;
     }
     .bar{
-      width: 140px;
+      width: 120px;
       height: 8px;
       border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.16);
-      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
       overflow:hidden;
     }
     .bar > div{
       height:100%;
       width:0%;
-      background: rgba(255,255,255,0.78);
+      background: rgba(255,255,255,0.75);
     }
 
-    /* ===== 하단 대화창 ===== */
-    .dialog{
-      position:absolute;
-      left: 12px;
-      right: 12px;
-      bottom: calc(12px + var(--safe-bot));
-      z-index:3;
-    }
-
-    .textbox{
-      border: 1px solid rgba(255,255,255,0.16);
-      border-radius: 18px;
-      background: linear-gradient(180deg, rgba(10,14,26,0.60), rgba(10,14,26,0.88));
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      box-shadow: 0 22px 65px rgba(0,0,0,0.55);
+    .box{
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 14px;
+      padding: 14px;
+      background: rgba(255,255,255,0.05);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.25);
       overflow:hidden;
     }
-
-    .textboxHeader{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      padding: 12px 14px;
-      border-bottom: 1px solid rgba(255,255,255,0.10);
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .speaker{
-      display:flex; align-items:center; gap:8px;
-      font-weight:800;
-      color: rgba(244,246,255,0.88);
-    }
-    .dot{
-      width:10px; height:10px; border-radius:999px;
-      background: var(--accent);
-      box-shadow: 0 0 16px rgba(255,60,95,0.60);
-    }
-
-    .textboxBody{
-      padding: 14px;
-    }
-    .q{
-      margin:0 0 6px 0;
-      font-size: 20px;
+    .question{
+      margin:0 0 10px 0;
+      font-size: 18px;
       font-weight: 950;
       letter-spacing: -0.2px;
     }
     .desc{
-      margin:0 0 12px 0;
+      margin: 0 0 12px 0;
       font-size: 13px;
       color: var(--muted);
       line-height: 1.35;
     }
 
     .choices{
-      display:grid;
-      gap: 10px;
-      padding-bottom: 6px;
-      max-height: 26svh;
       overflow:auto;
       -webkit-overflow-scrolling: touch;
+      padding-bottom: 6px;
+      display:grid;
+      gap: 10px;
     }
-
     button.choice{
       text-align:left;
       padding: 14px 14px;
       border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.18);
-      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(255,255,255,0.06);
       color: var(--text);
       font-size: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
     }
     button.choice:active{ transform: translateY(1px); }
 
     .row{
-      display:flex; gap:10px; flex-wrap:wrap;
-      margin-top: 10px;
+      display:flex;
+      gap: 10px;
+      flex-wrap:wrap;
+      margin-top: 12px;
     }
     button.ghost{
       padding: 10px 12px;
       border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.16);
-      background: rgba(0,0,0,0.12);
-      color: rgba(244,246,255,0.86);
+      border: 1px solid rgba(255,255,255,0.14);
+      background: transparent;
+      color: rgba(240,242,255,0.85);
       font-size: 13px;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
     }
 
-    /* 시작 화면(캐릭터 생성) */
+    /* 시작 화면 */
     #startScreen{
       position: fixed;
       inset: 0;
@@ -239,8 +287,9 @@
       display:none;
     }
     #startScreen .backdrop{
-      position:absolute; inset:0;
-      background: rgba(0,0,0,0.76);
+      position:absolute;
+      inset:0;
+      background: rgba(0,0,0,0.75);
     }
     #startScreen .panelWrap{
       position:relative;
@@ -255,7 +304,7 @@
       width:100%;
       max-width: 520px;
       border-radius: 18px;
-      border:1px solid rgba(255,255,255,0.16);
+      border:1px solid rgba(255,255,255,0.14);
       background: rgba(10,14,25,0.94);
       padding: 18px;
       box-shadow: 0 20px 60px rgba(0,0,0,0.45);
@@ -276,7 +325,7 @@
     .field label{
       display:block;
       font-size: 12px;
-      color: rgba(244,246,255,0.75);
+      color: rgba(240,242,255,0.75);
       margin-bottom: 6px;
     }
     .field input, .field select{
@@ -290,9 +339,14 @@
       font-size: 15px;
       outline: none;
     }
-    .startBtns{ display:flex; gap:10px; margin-top:14px; }
+
+    .startBtns{
+      display:flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
     .primary{
-      flex:1;
+      flex: 1;
       padding: 13px 14px;
       border-radius: 14px;
       border: 1px solid rgba(255,255,255,0.18);
@@ -306,250 +360,315 @@
       border-radius: 14px;
       border: 1px solid rgba(255,255,255,0.14);
       background: transparent;
-      color: rgba(244,246,255,0.85);
+      color: rgba(240,242,255,0.85);
       font-weight: 800;
       font-size: 15px;
       white-space: nowrap;
+    }
+
+    /* 데스크탑에서는 스크롤 */
+    @media (min-width: 900px){
+      body{ overflow:auto; height:auto; }
+      .wrap{ max-width: 860px; height:auto; padding: 16px; }
+      .stage{ height:auto; }
     }
   </style>
 </head>
 
 <body>
+  <!-- 시작 화면 -->
+  <div id="startScreen">
+    <div class="backdrop"></div>
+    <div class="panelWrap">
+      <div class="panel">
+        <div class="title">🎸 캐릭터 생성 <span class="accent-dot"></span></div>
+        <div class="subtitle">
+          닉네임/나이/성별을 정하면 시작됩니다. (서버 없음 · 이 기기에만 저장)
+        </div>
 
-<!-- 시작 화면 -->
-<div id="startScreen">
-  <div class="backdrop"></div>
-  <div class="panelWrap">
-    <div class="panel">
-      <div class="title">🎸 캐릭터 생성 <span class="dot"></span></div>
-      <div class="subtitle">
-        <b>락스타를 꿈꾸는 소녀</b>가 성장하는 선택형 RPG.<br>
-        닉네임/나이/성별을 정하면 바로 시작됩니다. (서버 없음 · 이 기기에만 저장)
-      </div>
+        <div class="field">
+          <label for="nick">닉네임</label>
+          <input id="nick" maxlength="12" />
+        </div>
 
-      <div class="field">
-        <label for="nick">닉네임</label>
-        <input id="nick" maxlength="12" />
-      </div>
+        <div class="field">
+          <label for="age">나이</label>
+          <select id="age">
+            <option value="">선택</option>
+            <option>10대</option><option>20대</option><option>30대</option><option>40대</option><option>50대+</option>
+          </select>
+        </div>
 
-      <div class="field">
-        <label for="age">나이</label>
-        <select id="age">
-          <option value="">선택</option>
-          <option>10대</option><option>20대</option><option>30대</option><option>40대</option><option>50대+</option>
-        </select>
-      </div>
+        <div class="field">
+          <label for="gender">성별</label>
+          <select id="gender">
+            <option value="">선택</option>
+            <option value="남">남</option>
+            <option value="여">여</option>
+            <option value="기타">기타/비공개</option>
+          </select>
+        </div>
 
-      <div class="field">
-        <label for="gender">성별</label>
-        <select id="gender">
-          <option value="">선택</option>
-          <option value="남">남</option>
-          <option value="여">여</option>
-          <option value="기타">기타/비공개</option>
-        </select>
-      </div>
-
-      <div class="startBtns">
-        <button class="primary" id="btnStart">시작하기</button>
-        <button class="secondary" id="btnDemo">데모로</button>
+        <div class="startBtns">
+          <button class="primary" id="btnStart">시작하기</button>
+          <button class="secondary" id="btnDemo">데모로</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<div class="game">
-  <div class="bg"></div>
-
-  <div class="hud">
-    <div class="brand">🎸 오늘의선택 · 락스타를 꿈꾸는 소녀</div>
-    <div class="progressWrap">
-      <span id="qIndexText">Q 1/10</span>
-      <div class="bar"><div id="barFill"></div></div>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">🎸 오늘의선택 · 락스타를 꿈꾸는 소녀 (프로토타입)</div>
       <div class="pill" id="userPill">로딩중…</div>
     </div>
-  </div>
 
-  <!-- 풀사이즈 캐릭터 -->
-  <div class="character">
-    <img id="playerSprite" class="sprite is-idle" src="/Mychoice-prototype/assets/character/rockstar.png" alt="락스타를 꿈꾸는 소녀">
-  </div>
+    <div class="stage">
 
-  <!-- 하단 대화창 -->
-  <div class="dialog">
-    <div class="textbox">
-      <div class="textboxHeader">
-        <div class="speaker">
-          <span class="dot"></span>
-          <span id="speakerName">매니저(머릿속)</span>
-        </div>
-        <div id="statusText">선택하면 다음 질문으로 넘어갑니다.</div>
-      </div>
+      <!-- 캐릭터 풀사이즈 -->
+      <div class="hero">
+        <div class="heroCard">
+          <div class="heroTop">
+            <div class="meta">
+              <div class="name" id="playerName">플레이어</div>
+              <div class="role" id="playerRole">락스타를 꿈꾸는 소녀 <span class="accent-dot"></span></div>
+            </div>
+            <button class="ghost" id="btnPlayToggle">연주 ON/OFF</button>
+          </div>
 
-      <div class="textboxBody">
-        <p class="q" id="questionText">로딩중…</p>
-        <p class="desc" id="questionDesc"></p>
-        <div class="choices" id="choices"></div>
-
-        <div class="row">
-          <button class="ghost" id="btnResetAll">처음부터 다시</button>
+          <div class="characterStage">
+            <div class="character is-idle" id="character">
+              <img class="layer body"  src="assets/character/body.png"     alt="">
+              <img class="layer guitar" src="assets/character/guitar.png"   alt="">
+              <img class="layer arm fret" id="fretArm" src="assets/character/fret_arm.png" alt="">
+              <img class="layer arm pick" id="pickArm" src="assets/character/pick_arm.png" alt="">
+            </div>
+          </div>
         </div>
       </div>
+
+      <!-- 질문 영역 -->
+      <div class="dialogue">
+        <div class="hud">
+          <div class="progress">
+            <span id="qIndexText">Q 1/10</span>
+            <div class="bar"><div id="barFill"></div></div>
+          </div>
+          <div id="statusText">선택하면 다음 질문으로 넘어갑니다.</div>
+        </div>
+
+        <div class="box">
+          <p class="question" id="questionText">로딩중…</p>
+          <p class="desc" id="questionDesc"></p>
+          <div class="choices" id="choices"></div>
+
+          <div class="row">
+            <button class="ghost" id="btnResetAll">처음부터 다시</button>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
-</div>
 
 <script>
-const LS_PROFILE = "mychoice_profile_v1";
-const LS_RUN     = "mychoice_run_v1";
+  const LS_PROFILE = "mychoice_profile_v1";
+  const LS_RUN     = "mychoice_run_v1";
 
-const QUESTIONS = [
-  { q:"오늘 연습을 언제 할래?", desc:"락스타는 타이밍이 아니라 ‘루틴’을 가진다.",
-    options:["지금 10분만이라도 바로 한다","저녁에 각 잡고 1시간 한다","내일 컨디션 좋을 때 한다","안 한다…(하지만 죄책감은 있다)"] },
-  { q:"기타를 집어드는 이유는?", desc:"목표가 선명하면 흔들려도 다시 돌아온다.",
-    options:["무대에서 터뜨리고 싶어서","스트레스 풀려고","멋있어 보여서","그냥… 습관처럼"] },
-  { q:"연습할 때 가장 먼저 하는 건?", desc:"초반 5분이 그날 퀄리티를 결정한다.",
-    options:["워밍업(크로매틱/스트레칭)","좋아하는 곡부터 쳐서 텐션 올림","새로 배우는 프레이즈 파고듦","유튜브 켜고 ‘보고 따라하기’"] },
-  { q:"기술이 막힐 때 너의 선택은?", desc:"막히는 구간이 실력의 관문이다.",
-    options:["메트로놈 켜고 느리게 쪼갠다","손풀릴 때까지 반복한다","포기하고 다른 거 한다","강의/레슨 자료를 찾는다"] },
-  { q:"녹음/촬영을 한다면?", desc:"기록은 실력 향상의 치트키다.",
-    options:["짧게라도 매일 기록한다","주 1회 제대로 찍는다","가끔 생각날 때만","부끄러워서 안 한다"] },
-  { q:"사람 앞 공포가 온다면?", desc:"무대는 연습량의 거짓말을 못 본다.",
-    options:["작게라도 사람 앞에서 자주 해본다","완벽해질 때까지 숨는다","친구 1명 앞에서부터 시작","아예 무대는 내 길이 아닌 듯"] },
-  { q:"장비 업그레이드 욕구가 폭발!", desc:"장비는 도움이 되지만, 실력은 더 직접적이다.",
-    options:["지금 있는 걸로 톤 세팅부터 파본다","필요한 것만 딱 하나 산다","충동구매 간다(행복은 잠깐)","리뷰만 3시간 본다(그리고 안 산다)"] },
-  { q:"밴드/합주 제안이 왔다면?", desc:"합주는 실전이고, 실전은 성장이다.",
-    options:["일단 한다. 부족하면 채우면 됨","조건(곡/스케줄) 맞으면 한다","실력 더 쌓고 나중에","사람 맞추는 게 더 피곤함…"] },
-  { q:"곡을 만들 기회가 생겼다.", desc:"‘내 색’은 결국 쌓인 선택에서 나온다.",
-    options:["리프부터 뽑는다(손이 먼저)","감정/스토리부터 잡는다","레퍼런스 조사하고 구조를 짠다","즉흥으로 녹음하고 거기서 뽑는다"] },
-  { q:"마지막 질문. 오늘의 너는?", desc:"끝이 아니라 누적의 시작이다.",
-    options:["가까웠다. 행동했다.","반반. 마음은 있었고 조금 했다.","멀었다. 하지만 내일은 다르게.","모르겠다. 그래도 기타는 놓지 않겠다."] },
-];
+  const QUESTIONS = [
+    { q:"오늘 연습을 언제 할래?", desc:"락스타는 타이밍이 아니라 ‘루틴’을 가진다.", options:["지금 10분만이라도 바로 한다","저녁에 각 잡고 1시간 한다","내일 컨디션 좋을 때 한다","안 한다…(하지만 죄책감은 있다)"] },
+    { q:"기타를 집어드는 이유는?", desc:"목표가 선명하면 흔들려도 다시 돌아온다.", options:["무대에서 터뜨리고 싶어서","스트레스 풀려고","멋있어 보여서","그냥… 습관처럼"] },
+    { q:"연습할 때 가장 먼저 하는 건?", desc:"초반 5분이 그날 퀄리티를 결정한다.", options:["워밍업(크로매틱/스트레칭)","좋아하는 곡부터 쳐서 텐션 올림","새로 배우는 프레이즈 파고듦","유튜브 켜고 ‘보고 따라하기’"] },
+    { q:"기술이 막힐 때 너의 선택은?", desc:"막히는 구간이 실력의 관문이다.", options:["메트로놈 켜고 느리게 쪼갠다","손풀릴 때까지 반복한다","포기하고 다른 거 한다","강의/레슨 자료를 찾는다"] },
+    { q:"녹음/촬영을 한다면?", desc:"기록은 실력 향상의 치트키다.", options:["짧게라도 매일 기록한다","주 1회 제대로 찍는다","가끔 생각날 때만","부끄러워서 안 한다"] },
+    { q:"무대(혹은 사람 앞) 공포가 온다면?", desc:"무대는 연습량의 거짓말을 못 본다.", options:["작게라도 사람 앞에서 자주 해본다","완벽해질 때까지 숨는다","친구 1명 앞에서부터 시작","아예 무대는 내 길이 아닌 듯"] },
+    { q:"장비 업그레이드 욕구가 폭발했다.", desc:"장비는 도움이 되지만, 실력은 더 직접적이다.", options:["지금 있는 걸로 톤 세팅부터 파본다","필요한 것만 딱 하나 산다","충동구매 간다(행복은 잠깐)","리뷰만 3시간 본다(그리고 안 산다)"] },
+    { q:"밴드(혹은 합주) 제안이 왔다.", desc:"합주는 실전이고, 실전은 성장이다.", options:["일단 한다. 부족하면 채우면 됨","조건(곡/스케줄) 맞으면 한다","실력 더 쌓고 나중에","사람 맞추는 게 더 피곤함…"] },
+    { q:"곡을 만들 기회가 생겼다.", desc:"‘내 색’은 결국 쌓인 선택에서 나온다.", options:["리프부터 뽑는다(손이 먼저)","감정/스토리부터 잡는다","레퍼런스 조사하고 구조를 짠다","즉흥으로 녹음하고 거기서 뽑는다"] },
+    { q:"마지막 질문. 오늘의 너는 록스타에 가까웠나?", desc:"답은 이미 알고 있다. 그래도 기록해라.", options:["가까웠다. 행동했다.","반반. 마음은 있었고 조금 했다.","멀었다. 하지만 내일은 다르게.","모르겠다. 그래도 기타는 놓지 않겠다."] },
+  ];
 
-const startScreen = document.getElementById("startScreen");
-const nickEl = document.getElementById("nick");
-const ageEl = document.getElementById("age");
-const genderEl = document.getElementById("gender");
-const btnStart = document.getElementById("btnStart");
-const btnDemo = document.getElementById("btnDemo");
+  // DOM
+  const startScreen = document.getElementById("startScreen");
+  const nickEl = document.getElementById("nick");
+  const ageEl = document.getElementById("age");
+  const genderEl = document.getElementById("gender");
+  const btnStart = document.getElementById("btnStart");
+  const btnDemo = document.getElementById("btnDemo");
 
-const qIndexText = document.getElementById("qIndexText");
-const barFill = document.getElementById("barFill");
-const userPill = document.getElementById("userPill");
+  const userPill = document.getElementById("userPill");
+  const playerName = document.getElementById("playerName");
 
-const speakerName = document.getElementById("speakerName");
-const statusText = document.getElementById("statusText");
-const questionText = document.getElementById("questionText");
-const questionDesc = document.getElementById("questionDesc");
-const choices = document.getElementById("choices");
-const btnResetAll = document.getElementById("btnResetAll");
+  const qIndexText = document.getElementById("qIndexText");
+  const barFill = document.getElementById("barFill");
+  const statusText = document.getElementById("statusText");
+  const questionText = document.getElementById("questionText");
+  const questionDesc = document.getElementById("questionDesc");
+  const choices = document.getElementById("choices");
 
-const playerSprite = document.getElementById("playerSprite");
+  const btnResetAll = document.getElementById("btnResetAll");
 
-function setState(state){
-  playerSprite.classList.remove("is-idle","is-talk","is-react");
-  playerSprite.classList.add(state);
-}
+  const character = document.getElementById("character");
+  const fretArm = document.getElementById("fretArm");
+  const pickArm = document.getElementById("pickArm");
+  const btnPlayToggle = document.getElementById("btnPlayToggle");
 
-function loadJSON(key, fallback){
-  try { return JSON.parse(localStorage.getItem(key) || ""); }
-  catch { return fallback; }
-}
-function saveJSON(key, value){ localStorage.setItem(key, JSON.stringify(value)); }
-
-function showStart(){ startScreen.style.display = "block"; }
-function hideStart(){ startScreen.style.display = "none"; }
-
-function applyProfile(p){
-  const nick = p?.nick || "플레이어";
-  const age = p?.age || "";
-  const gender = p?.gender || "";
-  userPill.textContent = `${nick}${age ? " · "+age : ""}${gender ? " · "+gender : ""}`;
-}
-
-function initRun(){ const run = { idx: 0 }; saveJSON(LS_RUN, run); return run; }
-function loadRun(){ return loadJSON(LS_RUN, null); }
-function saveRun(run){ saveJSON(LS_RUN, run); }
-
-function renderQuestion(run){
-  const total = QUESTIONS.length;
-  const idx = run.idx;
-
-  if (idx >= total){
-    qIndexText.textContent = `END · 10/10`;
-    barFill.style.width = "100%";
-    setState("is-idle");
-    speakerName.textContent = "매니저(머릿속)";
-    questionText.textContent = "오늘의 선택은 저장됐다.";
-    questionDesc.textContent = "끝이 아니라 누적이다. 내일 또 선택하면, 너는 달라진다.";
-    choices.innerHTML = `<button class="choice" id="btnRestart">처음부터 다시</button>`;
-    document.getElementById("btnRestart").onclick = () => { const nr = initRun(); renderQuestion(nr); };
-    statusText.textContent = "엔딩.";
-    return;
+  function loadJSON(key, fallback){
+    try { return JSON.parse(localStorage.getItem(key) || ""); }
+    catch { return fallback; }
+  }
+  function saveJSON(key, value){
+    localStorage.setItem(key, JSON.stringify(value));
   }
 
-  qIndexText.textContent = `Q ${idx+1}/${total}`;
-  barFill.style.width = `${Math.round((idx / total) * 100)}%`;
+  function showStart(){ startScreen.style.display = "block"; }
+  function hideStart(){ startScreen.style.display = "none"; }
 
-  const q = QUESTIONS[idx];
-  speakerName.textContent = "매니저(머릿속)";
-  questionText.textContent = q.q;
-  questionDesc.textContent = q.desc;
+  function loadProfile(){ return loadJSON(LS_PROFILE, null); }
+  function saveProfile(p){ saveJSON(LS_PROFILE, p); }
 
-  setState("is-talk");
+  function initRun(){
+    const run = { idx: 0, answers: [] };
+    saveJSON(LS_RUN, run);
+    return run;
+  }
+  function loadRun(){ return loadJSON(LS_RUN, null); }
+  function saveRun(run){ saveJSON(LS_RUN, run); }
 
-  choices.innerHTML = "";
-  q.options.forEach((opt, i) => {
-    const b = document.createElement("button");
-    b.className = "choice";
-    b.textContent = `${["A","B","C","D"][i]}. ${opt}`;
-    b.onclick = () => onChoose(run);
-    choices.appendChild(b);
+  function applyProfile(p){
+    const nick = p?.nick || "플레이어";
+    const age = p?.age || "";
+    const gender = p?.gender || "";
+    playerName.textContent = nick;
+    userPill.textContent = `${nick}${age ? " · "+age : ""}${gender ? " · "+gender : ""}`;
+  }
+
+  // ===== 연주 토글/원샷 =====
+  let isPlaying = true;
+
+  function setPlaying(on){
+    isPlaying = on;
+    if (on){
+      fretArm.classList.add("playing");
+      pickArm.classList.add("playing");
+      btnPlayToggle.textContent = "연주 ON/OFF";
+    } else {
+      fretArm.classList.remove("playing");
+      pickArm.classList.remove("playing");
+      btnPlayToggle.textContent = "연주 ON/OFF";
+    }
+  }
+
+  function hitOnce(){
+    // 선택할 때 한 번 강하게
+    pickArm.classList.remove("hit");
+    // reflow
+    void pickArm.offsetWidth;
+    pickArm.classList.add("hit");
+    setTimeout(() => pickArm.classList.remove("hit"), 320);
+  }
+
+  btnPlayToggle.addEventListener("click", () => setPlaying(!isPlaying));
+
+  // ===== 질문 =====
+  function renderQuestion(run){
+    const total = QUESTIONS.length;
+    const idx = run.idx;
+
+    if (idx >= total){
+      qIndexText.textContent = `END · ${total}/${total}`;
+      barFill.style.width = "100%";
+      questionText.textContent = "오늘 기록 완료.";
+      questionDesc.textContent = "내일 또 선택하면 누적된다.";
+      choices.innerHTML = `<button class="choice" id="btnRestart">처음부터 다시하기</button>`;
+      document.getElementById("btnRestart").onclick = () => {
+        const newRun = initRun();
+        renderQuestion(newRun);
+      };
+      statusText.textContent = "끝. 다시하기 가능.";
+      return;
+    }
+
+    const q = QUESTIONS[idx];
+    qIndexText.textContent = `Q ${idx+1}/${total}`;
+    barFill.style.width = `${Math.round(((idx) / total) * 100)}%`;
+
+    questionText.textContent = q.q;
+    questionDesc.textContent = q.desc;
+
+    choices.innerHTML = "";
+    q.options.forEach((opt, i) => {
+      const b = document.createElement("button");
+      b.className = "choice";
+      b.textContent = `${["A","B","C","D"][i]}. ${opt}`;
+      b.onclick = () => onChoose(run, opt);
+      choices.appendChild(b);
+    });
+
+    statusText.textContent = "선택하면 다음 질문으로 넘어갑니다.";
+  }
+
+  function onChoose(run, answer){
+    const idx = run.idx;
+    const q = QUESTIONS[idx];
+
+    // “강하게 한 번”
+    hitOnce();
+
+    run.answers.push({ question: q.q, answer, at: new Date().toISOString() });
+    run.idx += 1;
+    saveRun(run);
+
+    statusText.textContent = "기록 완료. 다음 질문…";
+    setTimeout(() => renderQuestion(run), 350);
+  }
+
+  function resetAll(){
+    if (!confirm("프로필/진행을 삭제하고 처음부터 시작할까요?")) return;
+    localStorage.removeItem(LS_PROFILE);
+    localStorage.removeItem(LS_RUN);
+    location.reload();
+  }
+  btnResetAll.addEventListener("click", resetAll);
+
+  // ===== 시작 플로우 =====
+  btnStart.addEventListener("click", () => {
+    const nick = (nickEl.value || "").trim();
+    const age = ageEl.value;
+    const gender = genderEl.value;
+    if (!nick || !age || !gender){
+      alert("닉네임/나이/성별을 모두 선택해주세요.");
+      return;
+    }
+    saveProfile({ nick, age, gender });
+    hideStart();
+    boot();
   });
 
-  statusText.textContent = "선택하면 다음 질문으로 넘어갑니다.";
-}
+  btnDemo.addEventListener("click", () => {
+    saveProfile({ nick: "데모", age: "20대", gender: "기타" });
+    hideStart();
+    boot();
+  });
 
-function onChoose(run){
-  setState("is-react");
-  setTimeout(() => setState("is-idle"), 380);
-  run.idx += 1;
-  saveRun(run);
-  statusText.textContent = "다음 질문으로 이동…";
-  setTimeout(() => renderQuestion(run), 420);
-}
+  function boot(){
+    const profile = loadProfile();
+    if (!profile){
+      showStart();
+      return;
+    }
+    applyProfile(profile);
 
-btnResetAll.addEventListener("click", () => {
-  if (!confirm("프로필/진행을 삭제하고 처음부터 시작할까요?")) return;
-  localStorage.removeItem(LS_PROFILE);
-  localStorage.removeItem(LS_RUN);
-  location.reload();
-});
+    let run = loadRun();
+    if (!run) run = initRun();
 
-btnStart.addEventListener("click", () => {
-  const nick = (nickEl.value || "").trim();
-  const age = ageEl.value;
-  const gender = genderEl.value;
-  if (!nick || !age || !gender){ alert("닉네임/나이/성별을 모두 선택해주세요."); return; }
-  saveJSON(LS_PROFILE, { nick, age, gender });
-  hideStart();
+    // 기본은 연주 ON
+    setPlaying(true);
+
+    renderQuestion(run);
+  }
+
   boot();
-});
-btnDemo.addEventListener("click", () => {
-  saveJSON(LS_PROFILE, { nick: "데모록스타", age: "20대", gender: "기타" });
-  hideStart();
-  boot();
-});
-
-function boot(){
-  const profile = loadJSON(LS_PROFILE, null);
-  if (!profile){ showStart(); return; }
-  applyProfile(profile);
-  let run = loadRun();
-  if (!run) run = initRun();
-  renderQuestion(run);
-}
-boot();
 </script>
 </body>
 </html>
