@@ -1,1 +1,116 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
+html, body {
+  width: 100%;
+  height: 100%;
+  background: black;
+  overflow: hidden;
+  font-family: system-ui, -apple-system;
+}
+
+/* 게임 화면 (9:16 고정) */
+#game {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+/* 배경 */
+#bg {
+  position: absolute;
+  inset: 0;
+  background: url("assets/bg/stage_vertical.png") center / cover no-repeat;
+  z-index: 0;
+}
+
+/* 캐릭터 기준 좌표 */
+#character {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 420px;
+  height: 100%;
+  z-index: 1;
+}
+
+/* 공통 */
+#character img {
+  position: absolute;
+  pointer-events: none;
+}
+
+/* 몸통 */
+#body {
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 80%;
+  z-index: 1;
+}
+
+/* 기타 */
+#guitar {
+  bottom: 32%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  z-index: 2;
+}
+
+/* 프렛 손 */
+#arm-fret {
+  bottom: 38%;
+  left: 58%;
+  width: 45%;
+  transform-origin: 20% 50%;
+  z-index: 3;
+}
+
+/* 피킹 손 */
+#arm-pick {
+  bottom: 36%;
+  left: 40%;
+  width: 35%;
+  transform-origin: 70% 50%;
+  z-index: 4;
+  animation: picking 0.25s infinite alternate ease-in-out;
+}
+
+/* 피킹 애니메이션 */
+@keyframes picking {
+  from { transform: rotate(5deg); }
+  to   { transform: rotate(-8deg); }
+}
+
+/* UI */
+#ui {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(to top, rgba(0,0,0,.85), transparent);
+  z-index: 10;
+}
+
+#question {
+  color: white;
+  margin-bottom: 12px;
+  font-size: 16px;
+}
+
+button {
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  background: #1f1f1f;
+  color: white;
+  font-size: 15px;
+}
