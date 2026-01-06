@@ -8,36 +8,95 @@
     :root{
       --safe-top: env(safe-area-inset-top);
       --safe-bot: env(safe-area-inset-bottom);
-      --bg: #0b0f1a;
-      --panel: rgba(255,255,255,0.06);
-      --panel2: rgba(0,0,0,0.35);
-      --border: rgba(255,255,255,0.12);
-      --text: #f0f2ff;
-      --muted: rgba(240,242,255,0.70);
-      --muted2: rgba(240,242,255,0.55);
-      --accent: rgba(255,60,95,0.85);
+      --text: #f4f6ff;
+      --muted: rgba(244,246,255,0.74);
+      --muted2: rgba(244,246,255,0.55);
+      --border: rgba(255,255,255,0.14);
+      --panel: rgba(10,14,26,0.62);
+      --panel2: rgba(10,14,26,0.82);
+      --accent: rgba(255,60,95,0.90);
+      --shadow: rgba(0,0,0,0.55);
     }
 
-    /* 전체 화면(모바일 앱 느낌) */
-    html, body { height: 100%; }
+    html, body { height:100%; }
     body{
       margin:0;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      background: var(--bg);
       color: var(--text);
-      height: 100svh;
-      overflow: hidden;
+      background:#05070f;
+      overflow:hidden;
     }
 
-    .wrap{
-      max-width: 520px;
-      margin: 0 auto;
-      height: 100svh;
-      padding: calc(12px + var(--safe-top)) 12px calc(12px + var(--safe-bot));
-      box-sizing: border-box;
+    /* ===== 풀스크린 게임 캔버스 ===== */
+    .game{
+      position:relative;
+      height:100svh;
+      width:100%;
+      overflow:hidden;
+      padding: calc(10px + var(--safe-top)) 12px calc(10px + var(--safe-bot));
+      box-sizing:border-box;
     }
 
-    .topbar{
+    /* 배경 (파일 있으면 깔리고, 없어도 그라데이션으로 버팀) */
+    .bg{
+      position:absolute; inset:0;
+      background:
+        radial-gradient(1200px 800px at 70% 20%, rgba(255,60,95,0.18), transparent 55%),
+        radial-gradient(900px 700px at 20% 10%, rgba(120,180,255,0.14), transparent 60%),
+        linear-gradient(180deg, #070a15 0%, #05070f 55%, #04050c 100%);
+      z-index:0;
+    }
+    .bg::after{
+      content:"";
+      position:absolute; inset:0;
+      background: radial-gradient(100% 70% at 50% 25%, transparent 30%, rgba(0,0,0,0.55) 100%);
+    }
+
+    /* ===== 캐릭터 ===== */
+    .character{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:flex-end;
+      justify-content:center;
+      padding-bottom: 18svh; /* 하단 UI에 가리지 않게 */
+      z-index:1;
+      pointer-events:none;
+    }
+
+    .sprite{
+      width:min(92vw, 520px);
+      height:auto;
+      filter: drop-shadow(0 20px 55px rgba(0,0,0,0.55));
+      transform-origin: 50% 90%;
+      will-change: transform;
+      user-select:none;
+      -webkit-user-drag:none;
+    }
+
+    /* 상태 애니메이션 */
+    @keyframes idleBreath {
+      0%,100%{ transform: translateY(0) scale(1); }
+      50%{ transform: translateY(-6px) scale(1.01); }
+    }
+    @keyframes talkNod {
+      0%,100%{ transform: translateY(-2px) rotate(0deg) scale(1.01); }
+      25%{ transform: translateY(-7px) rotate(-1.2deg) scale(1.015); }
+      75%{ transform: translateY(-7px) rotate(1.2deg) scale(1.015); }
+    }
+    @keyframes reactPop {
+      0%{ transform: translateY(0) scale(1); }
+      35%{ transform: translateY(-12px) scale(1.06); }
+      100%{ transform: translateY(-2px) scale(1.01); }
+    }
+    .is-idle { animation: idleBreath 3.2s ease-in-out infinite; }
+    .is-talk { animation: talkNod 0.7s ease-in-out infinite; }
+    .is-react{ animation: reactPop 0.35s ease-out; }
+
+    /* ===== 상단 HUD ===== */
+    .hud{
+      position:relative;
+      z-index:3;
       display:flex;
       align-items:center;
       justify-content:space-between;
@@ -45,194 +104,132 @@
       margin-bottom:10px;
     }
     .brand{
-      font-weight: 900;
-      letter-spacing: 0.2px;
       display:flex; align-items:center; gap:8px;
-      font-size: 16px;
+      font-weight:900;
+      letter-spacing:0.2px;
+      text-shadow: 0 10px 25px rgba(0,0,0,0.45);
     }
     .pill{
       font-size:12px;
-      padding:6px 10px;
+      padding:7px 10px;
       border:1px solid var(--border);
-      border-radius: 999px;
-      color: var(--muted);
-      background: rgba(255,255,255,0.03);
-      white-space: nowrap;
-    }
-
-    .stage{
-      height: calc(100svh - (12px + var(--safe-top) + 12px + var(--safe-bot) + 34px)); /* 대충 topbar 포함 */
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      overflow: hidden;
-      background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02));
-      display:flex;
-      flex-direction: column;
-    }
-
-    .characters{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap: 10px;
-      padding: 12px;
-      border-bottom: 1px solid var(--border);
-      background: rgba(0,0,0,0.18);
-    }
-    .char{
-      display:flex;
-      gap: 12px;
-      align-items:center;
-      border:1px solid rgba(255,255,255,0.10);
-      background: rgba(0,0,0,0.22);
-      border-radius: 14px;
-      padding: 10px;
-    }
-    .avatar{
-      width: 88px;
-      height: 88px;
-      border-radius: 16px;
+      border-radius:999px;
       background: rgba(255,255,255,0.06);
-      display:grid;
-      place-items:center;
-      transform-origin: 50% 80%;
-      will-change: transform, filter;
-      overflow:hidden;
-      position: relative;
-    }
-
-    /* ✅ 플레이어 아바타(이미지) */
-    .avatar img{
-      width:100%;
-      height:100%;
-      object-fit: contain;
-      filter: drop-shadow(0 10px 18px rgba(0,0,0,0.35));
-    }
-
-    .meta .name{ font-weight: 900; }
-    .meta .role{ font-size: 12px; color: var(--muted); margin-top:4px; }
-
-    /* 간단한 “빨간 포인트” */
-    .accent-dot{
-      width:10px; height:10px; border-radius:999px;
-      background: var(--accent);
-      box-shadow: 0 0 18px rgba(255,60,95,0.55);
-      display:inline-block;
-      margin-left: 6px;
-      vertical-align: middle;
-    }
-
-    /* 대화/선택 영역 */
-    .dialogue{
-      flex: 1;
-      display:flex;
-      flex-direction: column;
-      gap: 10px;
-      padding: 12px;
-      background: var(--panel2);
-      overflow: hidden;
-    }
-    .hud{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap: 10px;
-      font-size:12px;
       color: var(--muted);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      white-space:nowrap;
     }
-    .progress{
-      display:flex;
-      align-items:center;
-      gap: 8px;
+    .progressWrap{
+      display:flex; align-items:center; gap:10px;
+      font-size:12px; color: var(--muted);
     }
     .bar{
-      width: 120px;
+      width: 140px;
       height: 8px;
       border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(255,255,255,0.08);
       overflow:hidden;
     }
     .bar > div{
-      height: 100%;
-      width: 0%;
-      background: rgba(255,255,255,0.75);
+      height:100%;
+      width:0%;
+      background: rgba(255,255,255,0.78);
     }
 
-    .box{
-      border: 1px solid rgba(255,255,255,0.14);
-      border-radius: 14px;
-      padding: 14px;
-      background: rgba(255,255,255,0.05);
-      box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+    /* ===== 하단 대화창 ===== */
+    .dialog{
+      position:absolute;
+      left: 12px;
+      right: 12px;
+      bottom: calc(12px + var(--safe-bot));
+      z-index:3;
     }
-    .question{
-      margin:0 0 10px 0;
-      font-size: 18px;
-      font-weight: 900;
+
+    .textbox{
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(10,14,26,0.60), rgba(10,14,26,0.88));
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 22px 65px rgba(0,0,0,0.55);
+      overflow:hidden;
+    }
+
+    .textboxHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.10);
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .speaker{
+      display:flex; align-items:center; gap:8px;
+      font-weight:800;
+      color: rgba(244,246,255,0.88);
+    }
+    .dot{
+      width:10px; height:10px; border-radius:999px;
+      background: var(--accent);
+      box-shadow: 0 0 16px rgba(255,60,95,0.60);
+    }
+
+    .textboxBody{
+      padding: 14px;
+    }
+    .q{
+      margin:0 0 6px 0;
+      font-size: 20px;
+      font-weight: 950;
       letter-spacing: -0.2px;
     }
     .desc{
-      margin: 0 0 12px 0;
+      margin:0 0 12px 0;
       font-size: 13px;
       color: var(--muted);
       line-height: 1.35;
     }
 
     .choices{
-      overflow:auto;
-      -webkit-overflow-scrolling: touch;
-      padding-bottom: 6px;
       display:grid;
       gap: 10px;
+      padding-bottom: 6px;
+      max-height: 26svh;
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
     }
+
     button.choice{
       text-align:left;
       padding: 14px 14px;
       border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.16);
-      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.08);
       color: var(--text);
       font-size: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
     }
     button.choice:active{ transform: translateY(1px); }
 
     .row{
-      display:flex;
-      gap: 10px;
-      flex-wrap:wrap;
+      display:flex; gap:10px; flex-wrap:wrap;
+      margin-top: 10px;
     }
     button.ghost{
       padding: 10px 12px;
       border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: transparent;
-      color: rgba(240,242,255,0.85);
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(0,0,0,0.12);
+      color: rgba(244,246,255,0.86);
       font-size: 13px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
-
-    /* 로그 패널(토글) */
-    .log{
-      display:none;
-      border-top: 1px solid var(--border);
-      background: rgba(255,255,255,0.03);
-      padding: 10px 12px;
-      max-height: 38%;
-      overflow:auto;
-      -webkit-overflow-scrolling: touch;
-    }
-    .log h3{
-      margin: 0 0 8px 0;
-      font-size: 13px;
-      color: rgba(240,242,255,0.85);
-    }
-    .item{
-      padding: 8px 0;
-      border-top: 1px solid rgba(255,255,255,0.08);
-      font-size: 13px;
-      color: rgba(240,242,255,0.9);
-    }
-    .item .t{ color: var(--muted2); font-size: 12px; }
-    .item .q{ color: var(--muted); font-size: 12px; margin-top: 3px; }
 
     /* 시작 화면(캐릭터 생성) */
     #startScreen{
@@ -242,9 +239,8 @@
       display:none;
     }
     #startScreen .backdrop{
-      position:absolute;
-      inset:0;
-      background: rgba(0,0,0,0.75);
+      position:absolute; inset:0;
+      background: rgba(0,0,0,0.76);
     }
     #startScreen .panelWrap{
       position:relative;
@@ -259,7 +255,7 @@
       width:100%;
       max-width: 520px;
       border-radius: 18px;
-      border:1px solid rgba(255,255,255,0.14);
+      border:1px solid rgba(255,255,255,0.16);
       background: rgba(10,14,25,0.94);
       padding: 18px;
       box-shadow: 0 20px 60px rgba(0,0,0,0.45);
@@ -276,13 +272,11 @@
       line-height: 1.35;
       margin-bottom: 14px;
     }
-    .field{
-      margin: 12px 0;
-    }
+    .field{ margin: 12px 0; }
     .field label{
       display:block;
       font-size: 12px;
-      color: rgba(240,242,255,0.75);
+      color: rgba(244,246,255,0.75);
       margin-bottom: 6px;
     }
     .field input, .field select{
@@ -296,15 +290,9 @@
       font-size: 15px;
       outline: none;
     }
-    .field input::placeholder{ color: rgba(240,242,255,0.45); }
-
-    .startBtns{
-      display:flex;
-      gap: 10px;
-      margin-top: 14px;
-    }
+    .startBtns{ display:flex; gap:10px; margin-top:14px; }
     .primary{
-      flex: 1;
+      flex:1;
       padding: 13px 14px;
       border-radius: 14px;
       border: 1px solid rgba(255,255,255,0.18);
@@ -318,161 +306,103 @@
       border-radius: 14px;
       border: 1px solid rgba(255,255,255,0.14);
       background: transparent;
-      color: rgba(240,242,255,0.85);
+      color: rgba(244,246,255,0.85);
       font-weight: 800;
       font-size: 15px;
       white-space: nowrap;
-    }
-    .warn{
-      margin-top: 10px;
-      font-size: 12px;
-      color: rgba(240,242,255,0.62);
-    }
-
-    /* ===== 캐릭터 움직임(상태) ===== */
-    @keyframes idleBreath {
-      0%, 100% { transform: translateY(0px) scale(1); }
-      50%      { transform: translateY(-2px) scale(1.01); }
-    }
-    @keyframes talkNod {
-      0%, 100% { transform: translateY(-1px) rotate(0deg) scale(1.01); }
-      25%      { transform: translateY(-3px) rotate(-1deg) scale(1.015); }
-      75%      { transform: translateY(-3px) rotate(1deg)  scale(1.015); }
-    }
-    @keyframes reactPop {
-      0%   { transform: translateY(0px) scale(1); }
-      40%  { transform: translateY(-4px) scale(1.05); }
-      100% { transform: translateY(0px) scale(1.01); }
-    }
-    .is-idle { animation: idleBreath 2.8s ease-in-out infinite; }
-    .is-talk { animation: talkNod 0.65s ease-in-out infinite; }
-    .is-react { animation: reactPop 0.35s ease-out; }
-
-    /* 데스크탑에서는 기존처럼 넓게(선택사항) */
-    @media (min-width: 900px){
-      body{ overflow:auto; height:auto; }
-      .wrap{ max-width: 860px; height:auto; padding: 16px; }
-      .stage{ height:auto; }
-      .characters{ grid-template-columns: 1fr 1fr; }
     }
   </style>
 </head>
 
 <body>
-  <!-- 시작 화면 -->
-  <div id="startScreen">
-    <div class="backdrop"></div>
-    <div class="panelWrap">
-      <div class="panel">
-        <div class="title">🎸 캐릭터 생성 <span class="accent-dot"></span></div>
-        <div class="subtitle">
-          <b>락스타를 꿈꾸는 소녀</b>가 성장하는 선택형 RPG.<br>
-          닉네임/나이/성별을 정하면 바로 시작됩니다. (서버 없음 · 이 기기에만 저장)
-        </div>
 
-        <div class="field">
-          <label for="nick">닉네임</label>
-          <input id="nick" maxlength="12" placeholder="예: 토미, 지윤이" />
-        </div>
+<!-- 시작 화면 -->
+<div id="startScreen">
+  <div class="backdrop"></div>
+  <div class="panelWrap">
+    <div class="panel">
+      <div class="title">🎸 캐릭터 생성 <span class="dot"></span></div>
+      <div class="subtitle">
+        <b>락스타를 꿈꾸는 소녀</b>가 성장하는 선택형 RPG.<br>
+        닉네임/나이/성별을 정하면 바로 시작됩니다. (서버 없음 · 이 기기에만 저장)
+      </div>
 
-        <div class="field">
-          <label for="age">나이</label>
-          <select id="age">
-            <option value="">선택</option>
-            <option>10대</option><option>20대</option><option>30대</option><option>40대</option><option>50대+</option>
-          </select>
-        </div>
+      <div class="field">
+        <label for="nick">닉네임</label>
+        <input id="nick" maxlength="12" />
+      </div>
 
-        <div class="field">
-          <label for="gender">성별</label>
-          <select id="gender">
-            <option value="">선택</option>
-            <option value="남">남</option>
-            <option value="여">여</option>
-            <option value="기타">기타/비공개</option>
-          </select>
-        </div>
+      <div class="field">
+        <label for="age">나이</label>
+        <select id="age">
+          <option value="">선택</option>
+          <option>10대</option><option>20대</option><option>30대</option><option>40대</option><option>50대+</option>
+        </select>
+      </div>
 
-        <div class="startBtns">
-          <button class="primary" id="btnStart">시작하기</button>
-          <button class="secondary" id="btnDemo">데모로</button>
-        </div>
+      <div class="field">
+        <label for="gender">성별</label>
+        <select id="gender">
+          <option value="">선택</option>
+          <option value="남">남</option>
+          <option value="여">여</option>
+          <option value="기타">기타/비공개</option>
+        </select>
+      </div>
 
-        <div class="warn">
-          ※ 닉네임/성별/나이는 점수 계산에만 사용될 수 있고, 외부로 전송되지 않습니다.
-        </div>
+      <div class="startBtns">
+        <button class="primary" id="btnStart">시작하기</button>
+        <button class="secondary" id="btnDemo">데모로</button>
       </div>
     </div>
   </div>
+</div>
 
-  <div class="wrap">
-    <div class="topbar">
-      <div class="brand">🎸 오늘의선택 · 락스타를 꿈꾸는 소녀 (프로토타입)</div>
+<div class="game">
+  <div class="bg"></div>
+
+  <div class="hud">
+    <div class="brand">🎸 오늘의선택 · 락스타를 꿈꾸는 소녀</div>
+    <div class="progressWrap">
+      <span id="qIndexText">Q 1/10</span>
+      <div class="bar"><div id="barFill"></div></div>
       <div class="pill" id="userPill">로딩중…</div>
     </div>
+  </div>
 
-    <div class="stage" id="stage">
-      <div class="characters">
-        <div class="char">
-          <!-- ✅ 플레이어: 이미지 + 기존 애니메이션 유지 -->
-          <div class="avatar is-idle" id="playerAvatar">
-            <img src="assets/character/rockstar.png" alt="락스타를 꿈꾸는 소녀">
-          </div>
-          <div class="meta">
-            <div class="name" id="playerName">플레이어</div>
-            <div class="role" id="playerRole">락스타를 꿈꾸는 소녀 · 선택하는 자 <span class="accent-dot"></span></div>
-          </div>
-        </div>
+  <!-- 풀사이즈 캐릭터 -->
+  <div class="character">
+    <img id="playerSprite" class="sprite is-idle" src="/Mychoice-prototype/assets/character/rockstar.png" alt="락스타를 꿈꾸는 소녀">
+  </div>
 
-        <div class="char">
-          <div class="avatar is-talk" id="npcAvatar">
-            <div style="font-size:30px; filter: drop-shadow(0 10px 18px rgba(0,0,0,0.3));">💬</div>
-          </div>
-          <div class="meta">
-            <div class="name" id="npcName">매니저(머릿속)</div>
-            <div class="role">“오늘도 기타 잡을 거지?”</div>
-          </div>
+  <!-- 하단 대화창 -->
+  <div class="dialog">
+    <div class="textbox">
+      <div class="textboxHeader">
+        <div class="speaker">
+          <span class="dot"></span>
+          <span id="speakerName">매니저(머릿속)</span>
         </div>
+        <div id="statusText">선택하면 다음 질문으로 넘어갑니다.</div>
       </div>
 
-      <div class="dialogue">
-        <div class="hud">
-          <div class="progress">
-            <span id="qIndexText">Q 1/10</span>
-            <div class="bar"><div id="barFill"></div></div>
-          </div>
-          <div id="statusText">선택하면 다음 질문으로 넘어갑니다.</div>
-        </div>
+      <div class="textboxBody">
+        <p class="q" id="questionText">로딩중…</p>
+        <p class="desc" id="questionDesc"></p>
+        <div class="choices" id="choices"></div>
 
-        <div class="box">
-          <p class="question" id="questionText">로딩중…</p>
-          <p class="desc" id="questionDesc"></p>
-          <div class="choices" id="choices"></div>
-          <div class="row" style="margin-top:12px;">
-            <button class="ghost" id="btnToggleLog">내 기록 보기/닫기</button>
-            <button class="ghost" id="btnResetAll">처음부터 다시</button>
-          </div>
+        <div class="row">
+          <button class="ghost" id="btnResetAll">처음부터 다시</button>
         </div>
-      </div>
-
-      <div class="log" id="logPanel">
-        <h3>내 기록 (이 기기에만 저장)</h3>
-        <div id="logBody"></div>
       </div>
     </div>
   </div>
+</div>
 
 <script>
-/** =========================
- *  저장 키
- *  ========================= */
 const LS_PROFILE = "mychoice_profile_v1";
 const LS_RUN     = "mychoice_run_v1";
-const LS_LOG     = "mychoice_log_v1";
 
-/** =========================
- *  질문(10개) - 튜토리얼/성장형
- *  ========================= */
 const QUESTIONS = [
   { q:"오늘 연습을 언제 할래?", desc:"락스타는 타이밍이 아니라 ‘루틴’을 가진다.",
     options:["지금 10분만이라도 바로 한다","저녁에 각 잡고 1시간 한다","내일 컨디션 좋을 때 한다","안 한다…(하지만 죄책감은 있다)"] },
@@ -496,7 +426,6 @@ const QUESTIONS = [
     options:["가까웠다. 행동했다.","반반. 마음은 있었고 조금 했다.","멀었다. 하지만 내일은 다르게.","모르겠다. 그래도 기타는 놓지 않겠다."] },
 ];
 
-/** DOM */
 const startScreen = document.getElementById("startScreen");
 const nickEl = document.getElementById("nick");
 const ageEl = document.getElementById("age");
@@ -504,220 +433,122 @@ const genderEl = document.getElementById("gender");
 const btnStart = document.getElementById("btnStart");
 const btnDemo = document.getElementById("btnDemo");
 
-const userPill = document.getElementById("userPill");
-const playerName = document.getElementById("playerName");
-const playerRole = document.getElementById("playerRole");
-const playerAvatar = document.getElementById("playerAvatar");
-const npcAvatar = document.getElementById("npcAvatar");
-
 const qIndexText = document.getElementById("qIndexText");
 const barFill = document.getElementById("barFill");
+const userPill = document.getElementById("userPill");
+
+const speakerName = document.getElementById("speakerName");
 const statusText = document.getElementById("statusText");
 const questionText = document.getElementById("questionText");
 const questionDesc = document.getElementById("questionDesc");
 const choices = document.getElementById("choices");
-
-const btnToggleLog = document.getElementById("btnToggleLog");
 const btnResetAll = document.getElementById("btnResetAll");
-const logPanel = document.getElementById("logPanel");
-const logBody = document.getElementById("logBody");
 
-/** 유틸 */
-function nowKST(){ return new Date().toLocaleString("ko-KR"); }
-function setState(el, state){
-  el.classList.remove("is-idle","is-talk","is-react");
-  el.classList.add(state);
+const playerSprite = document.getElementById("playerSprite");
+
+function setState(state){
+  playerSprite.classList.remove("is-idle","is-talk","is-react");
+  playerSprite.classList.add(state);
 }
+
 function loadJSON(key, fallback){
   try { return JSON.parse(localStorage.getItem(key) || ""); }
   catch { return fallback; }
 }
 function saveJSON(key, value){ localStorage.setItem(key, JSON.stringify(value)); }
 
-/** 프로필 */
-function loadProfile(){ return loadJSON(LS_PROFILE, null); }
-function saveProfile(profile){ saveJSON(LS_PROFILE, profile); }
-function applyProfile(profile){
-  const nick = profile?.nick || "플레이어";
-  const age = profile?.age || "";
-  const gender = profile?.gender || "";
-  playerName.textContent = nick;
+function showStart(){ startScreen.style.display = "block"; }
+function hideStart(){ startScreen.style.display = "none"; }
+
+function applyProfile(p){
+  const nick = p?.nick || "플레이어";
+  const age = p?.age || "";
+  const gender = p?.gender || "";
   userPill.textContent = `${nick}${age ? " · "+age : ""}${gender ? " · "+gender : ""}`;
-  // 역할 문구도 살짝 더 테마 맞춤
-  playerRole.innerHTML = `락스타를 꿈꾸는 소녀 · ${nick} <span class="accent-dot"></span>`;
 }
 
-/** 진행 */
-function initRun(){
-  const run = { idx: 0, answers: [] };
-  saveJSON(LS_RUN, run);
-  return run;
-}
+function initRun(){ const run = { idx: 0 }; saveJSON(LS_RUN, run); return run; }
 function loadRun(){ return loadJSON(LS_RUN, null); }
 function saveRun(run){ saveJSON(LS_RUN, run); }
 
-/** 로그 */
-function addLog(entry){
-  const logs = loadJSON(LS_LOG, []);
-  logs.unshift(entry);
-  saveJSON(LS_LOG, logs);
-}
-function escapeHTML(s){
-  return String(s)
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-}
-function renderLog(){
-  const logs = loadJSON(LS_LOG, []);
-  if (logs.length === 0){
-    logBody.innerHTML = `<div class="item"><div class="t">아직 기록이 없습니다.</div></div>`;
-    return;
-  }
-  logBody.innerHTML = logs.slice(0, 50).map(l => `
-    <div class="item">
-      <div class="t">[${l.time}]</div>
-      <div><b>${escapeHTML(l.answer)}</b></div>
-      <div class="q">${escapeHTML(l.question)}</div>
-    </div>
-  `).join("");
-}
-
-/** 질문 렌더 */
 function renderQuestion(run){
   const total = QUESTIONS.length;
   const idx = run.idx;
 
   if (idx >= total){
-    renderEnding(run);
+    qIndexText.textContent = `END · 10/10`;
+    barFill.style.width = "100%";
+    setState("is-idle");
+    speakerName.textContent = "매니저(머릿속)";
+    questionText.textContent = "오늘의 선택은 저장됐다.";
+    questionDesc.textContent = "끝이 아니라 누적이다. 내일 또 선택하면, 너는 달라진다.";
+    choices.innerHTML = `<button class="choice" id="btnRestart">처음부터 다시</button>`;
+    document.getElementById("btnRestart").onclick = () => { const nr = initRun(); renderQuestion(nr); };
+    statusText.textContent = "엔딩.";
     return;
   }
 
-  const q = QUESTIONS[idx];
   qIndexText.textContent = `Q ${idx+1}/${total}`;
-  barFill.style.width = `${Math.round(((idx) / total) * 100)}%`;
+  barFill.style.width = `${Math.round((idx / total) * 100)}%`;
 
+  const q = QUESTIONS[idx];
+  speakerName.textContent = "매니저(머릿속)";
   questionText.textContent = q.q;
   questionDesc.textContent = q.desc;
 
-  setState(npcAvatar, "is-talk");
-  setState(playerAvatar, "is-idle");
+  setState("is-talk");
 
   choices.innerHTML = "";
   q.options.forEach((opt, i) => {
     const b = document.createElement("button");
     b.className = "choice";
     b.textContent = `${["A","B","C","D"][i]}. ${opt}`;
-    b.onclick = () => onChoose(run, opt);
+    b.onclick = () => onChoose(run);
     choices.appendChild(b);
   });
 
   statusText.textContent = "선택하면 다음 질문으로 넘어갑니다.";
 }
 
-function onChoose(run, answer){
-  const idx = run.idx;
-  const q = QUESTIONS[idx];
-
-  setState(playerAvatar, "is-react");
-  setTimeout(() => setState(playerAvatar, "is-idle"), 380);
-
-  run.answers.push({ question: q.q, answer, at: new Date().toISOString() });
-  addLog({ time: nowKST(), question: q.q, answer });
-
+function onChoose(run){
+  setState("is-react");
+  setTimeout(() => setState("is-idle"), 380);
   run.idx += 1;
   saveRun(run);
-  renderLog();
-
-  statusText.textContent = "기록 완료. 다음 질문으로 이동…";
+  statusText.textContent = "다음 질문으로 이동…";
   setTimeout(() => renderQuestion(run), 420);
 }
 
-function renderEnding(run){
-  barFill.style.width = `100%`;
-  qIndexText.textContent = `END · 10/10`;
-  setState(npcAvatar, "is-idle");
-  setState(playerAvatar, "is-idle");
-
-  const nick = loadProfile()?.nick || "플레이어";
-
-  questionText.textContent = `${nick}의 오늘은 저장됐다.`;
-  questionDesc.textContent =
-    "이건 끝이 아니라 ‘누적’의 시작이다. 내일 또 선택하면 너는 분명 달라진다.";
-
-  choices.innerHTML = `
-    <button class="choice" id="btnRestart">처음부터 다시하기</button>
-    <button class="choice" id="btnCloseLog">내 기록 보기/닫기</button>
-  `;
-
-  document.getElementById("btnRestart").onclick = () => {
-    if (confirm("진행상황(10문항)을 처음부터 다시 할까요? (기록 로그는 유지됩니다)")){
-      const newRun = initRun();
-      renderQuestion(newRun);
-    }
-  };
-  document.getElementById("btnCloseLog").onclick = () => toggleLog();
-
-  statusText.textContent = "엔딩. 다시하기 또는 기록 확인.";
-}
-
-function toggleLog(){
-  const isHidden = getComputedStyle(logPanel).display === "none";
-  logPanel.style.display = isHidden ? "block" : "none";
-}
-
-function resetAll(){
-  if (!confirm("프로필/진행/기록을 전부 삭제하고 처음부터 시작할까요?")) return;
+btnResetAll.addEventListener("click", () => {
+  if (!confirm("프로필/진행을 삭제하고 처음부터 시작할까요?")) return;
   localStorage.removeItem(LS_PROFILE);
   localStorage.removeItem(LS_RUN);
-  localStorage.removeItem(LS_LOG);
   location.reload();
-}
-
-/** 시작 흐름 */
-function showStart(){ startScreen.style.display = "block"; }
-function hideStart(){ startScreen.style.display = "none"; }
+});
 
 btnStart.addEventListener("click", () => {
   const nick = (nickEl.value || "").trim();
   const age = ageEl.value;
   const gender = genderEl.value;
-
-  if (!nick || !age || !gender){
-    alert("닉네임/나이/성별을 모두 선택해주세요.");
-    return;
-  }
-  saveProfile({ nick, age, gender });
+  if (!nick || !age || !gender){ alert("닉네임/나이/성별을 모두 선택해주세요."); return; }
+  saveJSON(LS_PROFILE, { nick, age, gender });
   hideStart();
   boot();
 });
-
 btnDemo.addEventListener("click", () => {
-  saveProfile({ nick: "데모록스타", age: "20대", gender: "기타" });
+  saveJSON(LS_PROFILE, { nick: "데모록스타", age: "20대", gender: "기타" });
   hideStart();
   boot();
 });
 
 function boot(){
-  const profile = loadProfile();
-  if (!profile){
-    showStart();
-    return;
-  }
+  const profile = loadJSON(LS_PROFILE, null);
+  if (!profile){ showStart(); return; }
   applyProfile(profile);
-
   let run = loadRun();
   if (!run) run = initRun();
-
-  renderLog();
   renderQuestion(run);
 }
-
-btnToggleLog.addEventListener("click", toggleLog);
-btnResetAll.addEventListener("click", resetAll);
-
 boot();
 </script>
 </body>
