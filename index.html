@@ -1,34 +1,186 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>오늘의 선택 · 락스타를 꿈꾸는 소녀</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>오늘의 선택 - 락스타를 꿈꾸는 소녀</title>
+
+  <style>
+    /* ===== RESET ===== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #000;
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      color: #fff;
+      overflow: hidden;
+    }
+
+    /* ===== GAME SCREEN ===== */
+    #game {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ===== BACKGROUND ===== */
+    #bg {
+      position: absolute;
+      inset: 0;
+      background: url("assets/bg/stage_vertical.png") center top / cover no-repeat;
+      z-index: 0;
+      filter: brightness(0.85);
+    }
+
+    /* ===== CHARACTER LAYER ===== */
+    #character {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    #body {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      height: 78vh;
+    }
+
+    #guitar {
+      position: absolute;
+      bottom: 22vh;
+      left: 50%;
+      transform: translateX(-50%);
+      height: 32vh;
+    }
+
+    #arm-pick {
+      position: absolute;
+      bottom: 28vh;
+      left: 50%;
+      height: 22vh;
+      transform-origin: 20% 50%;
+      animation: strum 1.2s ease-in-out infinite;
+    }
+
+    @keyframes strum {
+      0% { transform: translateX(-50%) rotate(5deg); }
+      50% { transform: translateX(-50%) rotate(-12deg); }
+      100% { transform: translateX(-50%) rotate(5deg); }
+    }
+
+    /* ===== UI ===== */
+    #ui {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 16px 16px 24px;
+      background: linear-gradient(
+        to top,
+        rgba(0,0,0,0.9),
+        rgba(0,0,0,0.6),
+        rgba(0,0,0,0)
+      );
+      z-index: 2;
+    }
+
+    #progress {
+      font-size: 13px;
+      opacity: 0.7;
+      margin-bottom: 6px;
+    }
+
+    #question {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 14px;
+      line-height: 1.4;
+    }
+
+    .choice {
+      width: 100%;
+      padding: 14px;
+      margin-bottom: 10px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #fff;
+      font-size: 15px;
+      text-align: left;
+    }
+
+    .choice:active {
+      background: rgba(255,255,255,0.18);
+    }
+
+    /* ===== HEADER ===== */
+    #header {
+      position: absolute;
+      top: env(safe-area-inset-top);
+      left: 0;
+      right: 0;
+      padding: 12px 16px;
+      z-index: 3;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
+    }
+
+    #title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    #profile {
+      font-size: 12px;
+      opacity: 0.75;
+    }
+  </style>
 </head>
+
 <body>
+  <div id="game">
 
-<div id="game">
-  <!-- 배경 -->
-  <div id="bg"></div>
+    <!-- BACKGROUND -->
+    <div id="bg"></div>
 
-  <!-- 캐릭터 -->
-  <div id="character">
-    <img id="body" src="assets/character/body.png" />
-    <img id="guitar" src="assets/character/guitar.png" />
-    <img id="arm-fret" src="assets/character/arm_fret.png" />
-    <img id="arm-pick" src="assets/character/arm_pick.png" />
+    <!-- CHARACTER -->
+    <div id="character">
+      <img id="body" src="assets/character/rockstar_body.png" />
+      <img id="guitar" src="assets/character/rockstar_guitar.png" />
+      <img id="arm-pick" src="assets/character/rockstar_pick_arm.png" />
+    </div>
+
+    <!-- HEADER -->
+    <div id="header">
+      <div id="title">🎸 오늘의 선택 · 락스타를 꿈꾸는 소녀</div>
+      <div id="profile">닉네임 · 나이 · 성별</div>
+    </div>
+
+    <!-- UI -->
+    <div id="ui">
+      <div id="progress">Q 1 / 15</div>
+      <div id="question">기타 톤이 마음에 안 들 때, 첫 점검은?</div>
+
+      <button class="choice">A. 볼륨/톤/픽업 포지션</button>
+      <button class="choice">B. 앰프 EQ를 극단으로</button>
+      <button class="choice">C. 케이블·노이즈부터 확인</button>
+    </div>
+
   </div>
 
-  <!-- UI -->
-  <div id="ui">
-    <div id="question">기타 톤이 마음에 안 들 때, 첫 점검은?</div>
-    <button>A. 볼륨/톤/픽업 포지션</button>
-    <button>B. 앰프 EQ를 극단으로</button>
-    <button>C. 케이블/노이즈</button>
-  </div>
-</div>
-
-<script src="script.js"></script>
+  <!-- SCRIPT -->
+  <script src="script.js"></script>
 </body>
 </html>
